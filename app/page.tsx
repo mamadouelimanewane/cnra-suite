@@ -240,13 +240,15 @@ export default function Home() {
             </h1>
           </div>
 
-          {/* Sous-titre */}
+          {/* Slogan CNRA — sous le titre */}
           <p className="animate-up-3" style={{
-            fontSize: "clamp(1rem, 2vw, 1.2rem)", color: "rgba(255,255,255,0.5)",
-            maxWidth: 620, margin: "0 auto 2.5rem", lineHeight: 1.75,
+            fontSize: "clamp(1.1rem, 2.5vw, 1.35rem)", fontWeight: 700,
+            color: "#fff", maxWidth: 660, margin: "0 auto 2.5rem", lineHeight: 1.6,
+            letterSpacing: "-0.01em",
           }}>
-            Une plateforme de <strong style={{ color: "rgba(255,255,255,0.8)" }}>6 applications digitales d&apos;avant‑garde</strong> pour
-            surveiller, réguler et éduquer dans le paysage audiovisuel sénégalais.
+            Réguler l&apos;audiovisuel.{" "}
+            <span style={{ color: "#C9A84C" }}>Protéger les citoyens.</span>{" "}
+            Éduquer aux médias.
           </p>
 
           {/* CTA */}
@@ -263,7 +265,7 @@ export default function Home() {
             </a>
           </div>
 
-          {/* Slogan CNRA */}
+          {/* Description plateforme */}
           <div className="slogan-card" style={{
             maxWidth: 720, margin: "4rem auto 0",
             background: "rgba(255,255,255,0.03)",
@@ -279,13 +281,11 @@ export default function Home() {
               Notre raison d&apos;être
             </p>
             <p style={{
-              fontSize: "clamp(1.1rem, 2.5vw, 1.4rem)", fontWeight: 700,
-              color: "#fff", lineHeight: 1.5, margin: 0,
-              letterSpacing: "-0.01em",
+              fontSize: "clamp(1rem, 2vw, 1.15rem)", color: "rgba(255,255,255,0.6)",
+              lineHeight: 1.75, margin: 0,
             }}>
-              Réguler l&apos;audiovisuel.{" "}
-              <span style={{ color: "#C9A84C" }}>Protéger les citoyens.</span>{" "}
-              Éduquer aux médias.
+              Une plateforme de <strong style={{ color: "rgba(255,255,255,0.9)" }}>6 applications digitales d&apos;avant‑garde</strong> pour
+              surveiller, réguler et éduquer dans le paysage audiovisuel sénégalais.
             </p>
           </div>
         </section>
