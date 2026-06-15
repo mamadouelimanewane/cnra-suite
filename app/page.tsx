@@ -1,12 +1,10 @@
 "use client"
 
-import Link from "next/link"
 import { useState, useEffect } from "react"
 
 const APPS = [
   {
     id: "electrowatch",
-    port: 3005,
     emoji: "🗳️",
     name: "ElectroWatch",
     tagline: "Surveillance électorale",
@@ -15,13 +13,10 @@ const APPS = [
     glow: "rgba(239,68,68,0.15)",
     border: "rgba(239,68,68,0.25)",
     tag: "Démocratie",
-    github: "https://github.com/mamadouelimanewane/cnra-electrowatch",
-    local: "https://cnra-electrowatch.vercel.app/login",
-    delay: "0.1s",
+    url: "https://cnra-electrowatch.vercel.app/login",
   },
   {
     id: "citoyen",
-    port: 3006,
     emoji: "🏛️",
     name: "Citoyen",
     tagline: "Participation citoyenne",
@@ -30,13 +25,10 @@ const APPS = [
     glow: "rgba(59,130,246,0.15)",
     border: "rgba(59,130,246,0.25)",
     tag: "Civic Tech",
-    github: "https://github.com/mamadouelimanewane/cnra-citoyen",
-    local: "https://cnra-citoyen.vercel.app/accueil",
-    delay: "0.2s",
+    url: "https://cnra-citoyen.vercel.app/accueil",
   },
   {
     id: "mediabase",
-    port: 3007,
     emoji: "📡",
     name: "MediaBase",
     tagline: "Registre des médias",
@@ -45,13 +37,10 @@ const APPS = [
     glow: "rgba(201,168,76,0.15)",
     border: "rgba(201,168,76,0.25)",
     tag: "Officiel",
-    github: "https://github.com/mamadouelimanewane/cnra-mediabase",
-    local: "https://cnra-mediabase.vercel.app/dashboard",
-    delay: "0.3s",
+    url: "https://cnra-mediabase.vercel.app/dashboard",
   },
   {
     id: "mediawatch",
-    port: 3008,
     emoji: "📊",
     name: "MediaWatch",
     tagline: "Monitoring & temps de parole",
@@ -60,13 +49,10 @@ const APPS = [
     glow: "rgba(249,115,22,0.15)",
     border: "rgba(249,115,22,0.25)",
     tag: "Pluralisme",
-    github: "https://github.com/mamadouelimanewane/cnra-mediawatch",
-    local: "https://cnra-mediawatch.vercel.app/dashboard",
-    delay: "0.4s",
+    url: "https://cnra-mediawatch.vercel.app/dashboard",
   },
   {
     id: "antideep",
-    port: 3009,
     emoji: "🛡️",
     name: "AntiDeep",
     tagline: "Détection de deepfakes",
@@ -75,13 +61,10 @@ const APPS = [
     glow: "rgba(168,85,247,0.15)",
     border: "rgba(168,85,247,0.25)",
     tag: "IA & Vérité",
-    github: "https://github.com/mamadouelimanewane/cnra-antideep",
-    local: "https://cnra-antideep.vercel.app/dashboard",
-    delay: "0.5s",
+    url: "https://cnra-antideep.vercel.app/dashboard",
   },
   {
     id: "edumedia",
-    port: 3010,
     emoji: "🎓",
     name: "EduMedia",
     tagline: "Éducation aux médias",
@@ -90,11 +73,12 @@ const APPS = [
     glow: "rgba(16,185,129,0.15)",
     border: "rgba(16,185,129,0.25)",
     tag: "Formation",
-    github: "https://github.com/mamadouelimanewane/cnra-edumedia",
-    local: "https://cnra-edumedia.vercel.app/dashboard",
-    delay: "0.6s",
+    url: "https://cnra-edumedia.vercel.app/dashboard",
   },
 ]
+
+const BG = "#081b4a"
+const BG_HEADER = "rgba(8,27,74,0.88)"
 
 function Particles() {
   return (
@@ -105,7 +89,7 @@ function Particles() {
           width: Math.random() > 0.8 ? "2px" : "1px",
           height: Math.random() > 0.8 ? "2px" : "1px",
           borderRadius: "50%",
-          background: Math.random() > 0.7 ? "#C9A84C" : "rgba(255,255,255,0.4)",
+          background: Math.random() > 0.7 ? "#C9A84C" : "rgba(255,255,255,0.5)",
           left: `${Math.random() * 100}%`,
           top: `${Math.random() * 100}%`,
           animation: `twinkle ${2 + Math.random() * 4}s ${Math.random() * 3}s infinite`,
@@ -166,7 +150,7 @@ export default function Home() {
         .animate-up-2 { animation: fadeSlideUp 0.7s 0.25s both; }
         .animate-up-3 { animation: fadeSlideUp 0.7s 0.4s both; }
         .animate-up-4 { animation: fadeSlideUp 0.7s 0.55s both; }
-        .stat-card { animation: fadeSlideUp 0.7s 0.7s both; }
+        .slogan-card  { animation: fadeSlideUp 0.7s 0.7s both; }
         .grid-card-0 { animation: fadeSlideUp 0.6s 0.8s both; }
         .grid-card-1 { animation: fadeSlideUp 0.6s 0.9s both; }
         .grid-card-2 { animation: fadeSlideUp 0.6s 1.0s both; }
@@ -177,25 +161,25 @@ export default function Home() {
         .scan { animation: scan-line 3s linear infinite; }
       `}</style>
 
-      <div style={{ minHeight: "100vh", background: "#060e1f", color: "#fff", position: "relative" }}>
+      <div style={{ minHeight: "100vh", background: BG, color: "#fff", position: "relative" }}>
 
         {/* ─── Arrière-plan ─── */}
         {mounted && <Particles />}
         <GridLines />
         <div style={{
           position: "fixed", inset: 0, pointerEvents: "none",
-          background: "radial-gradient(ellipse 70% 50% at 50% -5%, rgba(26,58,107,0.7), transparent)",
+          background: "radial-gradient(ellipse 70% 50% at 50% -5%, rgba(30,80,160,0.5), transparent)",
         }} />
         <div style={{
           position: "fixed", inset: 0, pointerEvents: "none",
-          background: "radial-gradient(ellipse 40% 40% at 80% 80%, rgba(201,168,76,0.04), transparent)",
+          background: "radial-gradient(ellipse 40% 40% at 80% 80%, rgba(201,168,76,0.05), transparent)",
         }} />
 
         {/* ─── Header ─── */}
         <header style={{
           position: "sticky", top: 0, zIndex: 50,
-          borderBottom: "1px solid rgba(255,255,255,0.05)",
-          background: "rgba(6,14,31,0.85)",
+          borderBottom: "1px solid rgba(255,255,255,0.06)",
+          background: BG_HEADER,
           backdropFilter: "blur(20px)",
           WebkitBackdropFilter: "blur(20px)",
         }}>
@@ -261,13 +245,13 @@ export default function Home() {
             fontSize: "clamp(1rem, 2vw, 1.2rem)", color: "rgba(255,255,255,0.5)",
             maxWidth: 620, margin: "0 auto 2.5rem", lineHeight: 1.75,
           }}>
-            Une plateforme intégrée de <strong style={{ color: "rgba(255,255,255,0.8)" }}>6 modules gouvernementaux</strong> pour
+            Une plateforme de <strong style={{ color: "rgba(255,255,255,0.8)" }}>6 applications digitales d&apos;avant‑garde</strong> pour
             surveiller, réguler et éduquer dans le paysage audiovisuel sénégalais.
           </p>
 
           {/* CTA */}
           <div className="animate-up-4" style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-            <a href="#modules" style={{
+            <a href="#applications" style={{
               display: "inline-flex", alignItems: "center", gap: 8,
               background: "linear-gradient(135deg, #1A3A6B, #2a5298)",
               border: "1px solid rgba(201,168,76,0.4)",
@@ -275,59 +259,52 @@ export default function Home() {
               fontSize: 14, fontWeight: 600, textDecoration: "none",
               transition: "all 0.2s",
             }}>
-              Découvrir les modules <span>↓</span>
-            </a>
-            <a href="https://github.com/mamadouelimanewane/cnra-suite" target="_blank" rel="noopener noreferrer" style={{
-              display: "inline-flex", alignItems: "center", gap: 8,
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.12)",
-              color: "rgba(255,255,255,0.7)", padding: "12px 28px", borderRadius: 12,
-              fontSize: 14, fontWeight: 500, textDecoration: "none",
-            }}>
-              <span>⟨/⟩</span> Code source
+              Découvrir les applications <span>↓</span>
             </a>
           </div>
 
-          {/* Stats */}
-          <div className="stat-card" style={{
-            display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 1,
-            maxWidth: 700, margin: "4rem auto 0",
-            background: "rgba(255,255,255,0.04)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            borderRadius: 16, overflow: "hidden",
+          {/* Slogan CNRA */}
+          <div className="slogan-card" style={{
+            maxWidth: 720, margin: "4rem auto 0",
+            background: "rgba(255,255,255,0.03)",
+            border: "1px solid rgba(201,168,76,0.2)",
+            borderRadius: 16, padding: "2rem 2.5rem",
+            position: "relative", overflow: "hidden",
           }}>
-            {[
-              { n: "6", l: "Modules applicatifs" },
-              { n: "30+", l: "Tables de données" },
-              { n: "50+", l: "Écrans & pages" },
-              { n: "1", l: "Base Supabase unifiée" },
-            ].map((s, i) => (
-              <div key={i} style={{
-                padding: "1.25rem 1rem", textAlign: "center",
-                borderRight: i < 3 ? "1px solid rgba(255,255,255,0.06)" : "none",
-              }}>
-                <p style={{ fontSize: 26, fontWeight: 800, color: "#C9A84C", lineHeight: 1 }}>{s.n}</p>
-                <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 6, lineHeight: 1.4 }}>{s.l}</p>
-              </div>
-            ))}
+            <div style={{
+              position: "absolute", inset: 0, pointerEvents: "none",
+              background: "radial-gradient(ellipse 80% 60% at 50% 100%, rgba(201,168,76,0.06), transparent)",
+            }} />
+            <p style={{ fontSize: 11, color: "#C9A84C", fontWeight: 600, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 14 }}>
+              Notre raison d&apos;être
+            </p>
+            <p style={{
+              fontSize: "clamp(1.1rem, 2.5vw, 1.4rem)", fontWeight: 700,
+              color: "#fff", lineHeight: 1.5, margin: 0,
+              letterSpacing: "-0.01em",
+            }}>
+              Réguler l&apos;audiovisuel.{" "}
+              <span style={{ color: "#C9A84C" }}>Protéger les citoyens.</span>{" "}
+              Éduquer aux médias.
+            </p>
           </div>
         </section>
 
         {/* ─── Ligne décorative ─── */}
         <div style={{ position: "relative", maxWidth: 1280, margin: "0 auto", padding: "0 2rem" }}>
           <div style={{ height: 1, background: "linear-gradient(90deg, transparent, rgba(201,168,76,0.3), transparent)" }} />
-          <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", background: "#060e1f", padding: "0 12px" }}>
+          <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", background: BG, padding: "0 12px" }}>
             <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#C9A84C", margin: "0 auto" }} />
           </div>
         </div>
 
-        {/* ─── Grille des modules ─── */}
-        <section id="modules" style={{ maxWidth: 1280, margin: "0 auto", padding: "4rem 2rem 2rem" }}>
+        {/* ─── Grille des applications ─── */}
+        <section id="applications" style={{ maxWidth: 1280, margin: "0 auto", padding: "4rem 2rem 2rem" }}>
           <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
             <p style={{ fontSize: 11, color: "#C9A84C", fontWeight: 600, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 8 }}>
               — Portail d&apos;accès —
             </p>
-            <h2 style={{ fontSize: 28, fontWeight: 700, color: "#fff" }}>Choisissez votre module</h2>
+            <h2 style={{ fontSize: 28, fontWeight: 700, color: "#fff" }}>Choisissez votre application</h2>
             <p style={{ fontSize: 14, color: "rgba(255,255,255,0.4)", marginTop: 8 }}>
               Cliquez sur une application pour y accéder directement
             </p>
@@ -341,7 +318,7 @@ export default function Home() {
             {APPS.map((app, i) => (
               <a
                 key={app.id}
-                href={app.local}
+                href={app.url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={`card-hover grid-card-${i}`}
@@ -439,7 +416,7 @@ export default function Home() {
         {/* ─── Section mission ─── */}
         <section style={{ maxWidth: 1280, margin: "3rem auto", padding: "0 2rem" }}>
           <div style={{
-            background: "linear-gradient(135deg, rgba(26,58,107,0.3) 0%, rgba(201,168,76,0.05) 100%)",
+            background: "linear-gradient(135deg, rgba(26,58,107,0.35) 0%, rgba(201,168,76,0.05) 100%)",
             border: "1px solid rgba(201,168,76,0.15)",
             borderRadius: 24, padding: "3rem",
             position: "relative", overflow: "hidden",
@@ -494,7 +471,7 @@ export default function Home() {
             </div>
             <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
               {APPS.map(app => (
-                <a key={app.id} href={app.github} target="_blank" rel="noopener noreferrer"
+                <a key={app.id} href={app.url} target="_blank" rel="noopener noreferrer"
                   style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", textDecoration: "none", transition: "color 0.2s" }}
                   onMouseEnter={e => (e.currentTarget.style.color = app.color)}
                   onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.3)")}>
