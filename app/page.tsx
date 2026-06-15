@@ -13,7 +13,7 @@ const APPS = [
     glow: "rgba(239,68,68,0.15)",
     border: "rgba(239,68,68,0.25)",
     tag: "Démocratie",
-    url: "https://cnra-electrowatch.vercel.app/login",
+    url: "https://cnra-electrowatch.vercel.app",
   },
   {
     id: "citoyen",
@@ -25,7 +25,7 @@ const APPS = [
     glow: "rgba(59,130,246,0.15)",
     border: "rgba(59,130,246,0.25)",
     tag: "Civic Tech",
-    url: "https://cnra-citoyen.vercel.app/accueil",
+    url: "https://cnra-citoyen.vercel.app",
   },
   {
     id: "mediabase",
@@ -37,7 +37,7 @@ const APPS = [
     glow: "rgba(201,168,76,0.15)",
     border: "rgba(201,168,76,0.25)",
     tag: "Officiel",
-    url: "https://cnra-mediabase.vercel.app/dashboard",
+    url: "https://cnra-mediabase.vercel.app",
   },
   {
     id: "mediawatch",
@@ -49,7 +49,7 @@ const APPS = [
     glow: "rgba(249,115,22,0.15)",
     border: "rgba(249,115,22,0.25)",
     tag: "Pluralisme",
-    url: "https://cnra-mediawatch.vercel.app/dashboard",
+    url: "https://cnra-mediawatch.vercel.app",
   },
   {
     id: "antideep",
@@ -61,7 +61,7 @@ const APPS = [
     glow: "rgba(168,85,247,0.15)",
     border: "rgba(168,85,247,0.25)",
     tag: "IA & Vérité",
-    url: "https://cnra-antideep.vercel.app/dashboard",
+    url: "https://cnra-antideep.vercel.app",
   },
   {
     id: "edumedia",
@@ -73,7 +73,7 @@ const APPS = [
     glow: "rgba(16,185,129,0.15)",
     border: "rgba(16,185,129,0.25)",
     tag: "Formation",
-    url: "https://cnra-edumedia.vercel.app/dashboard",
+    url: "https://cnra-edumedia.vercel.app",
   },
 ]
 
@@ -163,7 +163,6 @@ export default function Home() {
 
       <div style={{ minHeight: "100vh", background: BG, color: "#fff", position: "relative" }}>
 
-        {/* ─── Arrière-plan ─── */}
         {mounted && <Particles />}
         <GridLines />
         <div style={{
@@ -175,7 +174,7 @@ export default function Home() {
           background: "radial-gradient(ellipse 40% 40% at 80% 80%, rgba(201,168,76,0.05), transparent)",
         }} />
 
-        {/* ─── Header ─── */}
+        {/* Header */}
         <header style={{
           position: "sticky", top: 0, zIndex: 50,
           borderBottom: "1px solid rgba(255,255,255,0.06)",
@@ -204,10 +203,9 @@ export default function Home() {
           </div>
         </header>
 
-        {/* ─── Hero ─── */}
+        {/* Hero */}
         <section style={{ maxWidth: 1280, margin: "0 auto", padding: "5rem 2rem 4rem", textAlign: "center", position: "relative" }}>
 
-          {/* Badge officiel */}
           <div className="animate-up-1" style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: "2rem" }}>
             <div style={{
               display: "flex", alignItems: "center", gap: 6,
@@ -222,7 +220,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Titre principal */}
           <div className="animate-up-2" style={{ marginBottom: "1.5rem" }}>
             <h1 style={{ fontSize: "clamp(2rem, 5vw, 3.75rem)", fontWeight: 800, lineHeight: 1.1, letterSpacing: "-0.02em" }}>
               <span style={{ display: "block", color: "rgba(255,255,255,0.55)", fontSize: "0.45em", fontWeight: 500, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "0.6rem" }}>
@@ -240,7 +237,7 @@ export default function Home() {
             </h1>
           </div>
 
-          {/* Slogan CNRA — sous le titre */}
+          {/* Slogan */}
           <p className="animate-up-3" style={{
             fontSize: "clamp(1.1rem, 2.5vw, 1.35rem)", fontWeight: 700,
             color: "#fff", maxWidth: 660, margin: "0 auto 2.5rem", lineHeight: 1.6,
@@ -265,7 +262,7 @@ export default function Home() {
             </a>
           </div>
 
-          {/* Description plateforme */}
+          {/* Description */}
           <div className="slogan-card" style={{
             maxWidth: 720, margin: "4rem auto 0",
             background: "rgba(255,255,255,0.03)",
@@ -290,7 +287,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ─── Ligne décorative ─── */}
+        {/* Ligne décorative */}
         <div style={{ position: "relative", maxWidth: 1280, margin: "0 auto", padding: "0 2rem" }}>
           <div style={{ height: 1, background: "linear-gradient(90deg, transparent, rgba(201,168,76,0.3), transparent)" }} />
           <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", background: BG, padding: "0 12px" }}>
@@ -298,7 +295,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* ─── Grille des applications ─── */}
+        {/* Grille des applications */}
         <section id="applications" style={{ maxWidth: 1280, margin: "0 auto", padding: "4rem 2rem 2rem" }}>
           <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
             <p style={{ fontSize: 11, color: "#C9A84C", fontWeight: 600, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 8 }}>
@@ -310,17 +307,9 @@ export default function Home() {
             </p>
           </div>
 
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))",
-            gap: 16,
-          }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", gap: 16 }}>
             {APPS.map((app, i) => (
-              <a
-                key={app.id}
-                href={app.url}
-                target="_blank"
-                rel="noopener noreferrer"
+              <a key={app.id} href={app.url} target="_blank" rel="noopener noreferrer"
                 className={`card-hover grid-card-${i}`}
                 onMouseEnter={() => setHovered(app.id)}
                 onMouseLeave={() => setHovered(null)}
@@ -333,17 +322,12 @@ export default function Home() {
                   borderRadius: 20, padding: "1.75rem",
                   position: "relative", overflow: "hidden",
                   boxShadow: hovered === app.id ? `0 20px 60px ${app.glow}, 0 0 0 1px ${app.border}` : "none",
-                }}
-              >
-                {/* Barre colorée top */}
+                }}>
                 <div style={{
                   position: "absolute", top: 0, left: 0, right: 0, height: 2,
                   background: `linear-gradient(90deg, ${app.color}, transparent)`,
-                  opacity: hovered === app.id ? 1 : 0.4,
-                  transition: "opacity 0.3s",
+                  opacity: hovered === app.id ? 1 : 0.4, transition: "opacity 0.3s",
                 }} />
-
-                {/* Scan line animé au hover */}
                 {hovered === app.id && (
                   <div style={{
                     position: "absolute", left: 0, right: 0, height: 60,
@@ -351,9 +335,7 @@ export default function Home() {
                     pointerEvents: "none",
                   }} className="scan" />
                 )}
-
                 <div style={{ display: "flex", alignItems: "flex-start", gap: 16 }}>
-                  {/* Icône */}
                   <div style={{
                     width: 52, height: 52, borderRadius: 14, flexShrink: 0,
                     background: `linear-gradient(135deg, ${app.glow}, rgba(255,255,255,0.03))`,
@@ -364,46 +346,32 @@ export default function Home() {
                   }}>
                     {app.emoji}
                   </div>
-
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
                       <h3 style={{ fontSize: 18, fontWeight: 700, color: "#fff" }}>{app.name}</h3>
                       <span style={{
-                        fontSize: 10, fontWeight: 600, padding: "2px 8px",
-                        borderRadius: 6, color: app.color,
-                        background: app.glow, border: `1px solid ${app.border}`,
+                        fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 6,
+                        color: app.color, background: app.glow, border: `1px solid ${app.border}`,
                         letterSpacing: "0.05em",
                       }}>{app.tag}</span>
                     </div>
-                    <p style={{ fontSize: 12, color: app.color, fontWeight: 500, marginBottom: 8, opacity: 0.8 }}>
-                      {app.tagline}
-                    </p>
-                    <p style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", lineHeight: 1.65 }}>
-                      {app.desc}
-                    </p>
+                    <p style={{ fontSize: 12, color: app.color, fontWeight: 500, marginBottom: 8, opacity: 0.8 }}>{app.tagline}</p>
+                    <p style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", lineHeight: 1.65 }}>{app.desc}</p>
                   </div>
                 </div>
-
-                {/* Footer carte */}
                 <div style={{
                   display: "flex", alignItems: "center", justifyContent: "space-between",
-                  marginTop: 20, paddingTop: 16,
-                  borderTop: "1px solid rgba(255,255,255,0.06)",
+                  marginTop: 20, paddingTop: 16, borderTop: "1px solid rgba(255,255,255,0.06)",
                 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <div style={{
-                      width: 6, height: 6, borderRadius: "50%", background: app.color,
-                      animation: "badge-glow 2s infinite",
-                    }} />
+                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: app.color, animation: "badge-glow 2s infinite" }} />
                     <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontFamily: "monospace" }}>
                       cnra-{app.id}.vercel.app
                     </span>
                   </div>
                   <div style={{
-                    display: "flex", alignItems: "center", gap: 6,
-                    fontSize: 13, fontWeight: 600,
-                    color: hovered === app.id ? app.color : "rgba(255,255,255,0.3)",
-                    transition: "color 0.3s",
+                    display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600,
+                    color: hovered === app.id ? app.color : "rgba(255,255,255,0.3)", transition: "color 0.3s",
                   }}>
                     Accéder <span style={{ fontSize: 16 }}>→</span>
                   </div>
@@ -413,19 +381,16 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ─── Section mission ─── */}
+        {/* Section mission */}
         <section style={{ maxWidth: 1280, margin: "3rem auto", padding: "0 2rem" }}>
           <div style={{
             background: "linear-gradient(135deg, rgba(26,58,107,0.35) 0%, rgba(201,168,76,0.05) 100%)",
             border: "1px solid rgba(201,168,76,0.15)",
-            borderRadius: 24, padding: "3rem",
-            position: "relative", overflow: "hidden",
+            borderRadius: 24, padding: "3rem", position: "relative", overflow: "hidden",
           }}>
             <div style={{
-              position: "absolute", right: -40, top: -40,
-              width: 200, height: 200, borderRadius: "50%",
-              background: "radial-gradient(circle, rgba(201,168,76,0.08), transparent)",
-              pointerEvents: "none",
+              position: "absolute", right: -40, top: -40, width: 200, height: 200, borderRadius: "50%",
+              background: "radial-gradient(circle, rgba(201,168,76,0.08), transparent)", pointerEvents: "none",
             }} />
             <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "2rem", alignItems: "center" }}>
               <div>
@@ -451,22 +416,14 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ─── Footer ─── */}
-        <footer style={{
-          borderTop: "1px solid rgba(255,255,255,0.06)",
-          padding: "2rem",
-          marginTop: "2rem",
-        }}>
+        {/* Footer */}
+        <footer style={{ borderTop: "1px solid rgba(255,255,255,0.06)", padding: "2rem", marginTop: "2rem" }}>
           <div style={{ maxWidth: 1280, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <span style={{ fontSize: 20 }}>🇸🇳</span>
               <div>
-                <p style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.6)" }}>
-                  République du Sénégal
-                </p>
-                <p style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>
-                  Conseil National de Régulation de l&apos;Audiovisuel
-                </p>
+                <p style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.6)" }}>République du Sénégal</p>
+                <p style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>Conseil National de Régulation de l&apos;Audiovisuel</p>
               </div>
             </div>
             <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
