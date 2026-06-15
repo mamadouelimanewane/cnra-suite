@@ -16,7 +16,7 @@ const APPS = [
     border: "rgba(239,68,68,0.25)",
     tag: "Démocratie",
     github: "https://github.com/mamadouelimanewane/cnra-electrowatch",
-    local: "http://localhost:3005",
+    local: "https://cnra-electrowatch.vercel.app/login",
     delay: "0.1s",
   },
   {
@@ -31,7 +31,7 @@ const APPS = [
     border: "rgba(59,130,246,0.25)",
     tag: "Civic Tech",
     github: "https://github.com/mamadouelimanewane/cnra-citoyen",
-    local: "http://localhost:3006",
+    local: "https://cnra-citoyen.vercel.app/accueil",
     delay: "0.2s",
   },
   {
@@ -46,7 +46,7 @@ const APPS = [
     border: "rgba(201,168,76,0.25)",
     tag: "Officiel",
     github: "https://github.com/mamadouelimanewane/cnra-mediabase",
-    local: "http://localhost:3007",
+    local: "https://cnra-mediabase.vercel.app/dashboard",
     delay: "0.3s",
   },
   {
@@ -61,7 +61,7 @@ const APPS = [
     border: "rgba(249,115,22,0.25)",
     tag: "Pluralisme",
     github: "https://github.com/mamadouelimanewane/cnra-mediawatch",
-    local: "http://localhost:3008",
+    local: "https://cnra-mediawatch.vercel.app/dashboard",
     delay: "0.4s",
   },
   {
@@ -76,7 +76,7 @@ const APPS = [
     border: "rgba(168,85,247,0.25)",
     tag: "IA & Vérité",
     github: "https://github.com/mamadouelimanewane/cnra-antideep",
-    local: "http://localhost:3009",
+    local: "https://cnra-antideep.vercel.app/dashboard",
     delay: "0.5s",
   },
   {
@@ -91,7 +91,7 @@ const APPS = [
     border: "rgba(16,185,129,0.25)",
     tag: "Formation",
     github: "https://github.com/mamadouelimanewane/cnra-edumedia",
-    local: "http://localhost:3010",
+    local: "https://cnra-edumedia.vercel.app/dashboard",
     delay: "0.6s",
   },
 ]
@@ -419,7 +419,7 @@ export default function Home() {
                       animation: "badge-glow 2s infinite",
                     }} />
                     <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontFamily: "monospace" }}>
-                      localhost:{app.port}
+                      cnra-{app.id}.vercel.app
                     </span>
                   </div>
                   <div style={{
