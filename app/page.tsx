@@ -77,8 +77,8 @@ const APPS = [
   },
 ]
 
-const BG = "#081b4a"
-const BG_HEADER = "rgba(8,27,74,0.88)"
+const BG = "#0f2d6b"
+const BG_HEADER = "rgba(15,45,107,0.92)"
 
 function Particles() {
   return (
@@ -167,7 +167,7 @@ export default function Home() {
         <GridLines />
         <div style={{
           position: "fixed", inset: 0, pointerEvents: "none",
-          background: "radial-gradient(ellipse 70% 50% at 50% -5%, rgba(30,80,160,0.5), transparent)",
+          background: "radial-gradient(ellipse 70% 50% at 50% -5%, rgba(50,110,200,0.45), transparent)",
         }} />
         <div style={{
           position: "fixed", inset: 0, pointerEvents: "none",
@@ -186,7 +186,7 @@ export default function Home() {
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <div className="logo-glow" style={{
                 width: 36, height: 36, borderRadius: 10,
-                background: "linear-gradient(135deg, #1A3A6B, #0d2447)",
+                background: "linear-gradient(135deg, #2a5298, #1a3a6b)",
                 border: "1px solid rgba(201,168,76,0.4)",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 fontSize: 18,
@@ -384,7 +384,7 @@ export default function Home() {
         {/* Section mission */}
         <section style={{ maxWidth: 1280, margin: "3rem auto", padding: "0 2rem" }}>
           <div style={{
-            background: "linear-gradient(135deg, rgba(26,58,107,0.35) 0%, rgba(201,168,76,0.05) 100%)",
+            background: "linear-gradient(135deg, rgba(42,82,152,0.45) 0%, rgba(201,168,76,0.08) 100%)",
             border: "1px solid rgba(201,168,76,0.15)",
             borderRadius: 24, padding: "3rem", position: "relative", overflow: "hidden",
           }}>
