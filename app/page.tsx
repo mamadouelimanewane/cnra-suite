@@ -281,7 +281,7 @@ export default function Home() {
               fontSize: "clamp(1.1rem, 2.2vw, 1.3rem)", color: "#c8d8ee",
               lineHeight: 1.8, margin: 0,
             }}>
-              Une plateforme de <strong style={{ color: "#ffffff" }}>6 applications digitales d&apos;avant‑garde</strong> pour
+              Une plateforme <strong style={{ color: "#ffffff" }}>d&apos;applications digitales d&apos;avant‑garde</strong> pour
               surveiller, réguler et éduquer dans le paysage audiovisuel sénégalais.
             </p>
           </div>
