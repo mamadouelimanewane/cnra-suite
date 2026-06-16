@@ -239,8 +239,8 @@ export default function Home() {
 
           {/* Slogan */}
           <p className="animate-up-3" style={{
-            fontSize: "clamp(1.1rem, 2.5vw, 1.35rem)", fontWeight: 700,
-            color: "#fff", maxWidth: 660, margin: "0 auto 2.5rem", lineHeight: 1.6,
+            fontSize: "clamp(1.4rem, 3vw, 1.75rem)", fontWeight: 700,
+            color: "#fff", maxWidth: 720, margin: "0 auto 2.5rem", lineHeight: 1.6,
             letterSpacing: "-0.01em",
           }}>
             Réguler l&apos;audiovisuel.{" "}
@@ -254,8 +254,8 @@ export default function Home() {
               display: "inline-flex", alignItems: "center", gap: 8,
               background: "linear-gradient(135deg, #1A3A6B, #2a5298)",
               border: "1px solid rgba(201,168,76,0.4)",
-              color: "#fff", padding: "12px 28px", borderRadius: 12,
-              fontSize: 14, fontWeight: 600, textDecoration: "none",
+              color: "#fff", padding: "16px 36px", borderRadius: 14,
+              fontSize: 17, fontWeight: 700, textDecoration: "none",
               transition: "all 0.2s",
             }}>
               Découvrir les applications <span>↓</span>
@@ -264,24 +264,24 @@ export default function Home() {
 
           {/* Description */}
           <div className="slogan-card" style={{
-            maxWidth: 720, margin: "4rem auto 0",
+            maxWidth: 800, margin: "4rem auto 0",
             background: "rgba(255,255,255,0.03)",
             border: "1px solid rgba(201,168,76,0.2)",
-            borderRadius: 16, padding: "2rem 2.5rem",
+            borderRadius: 16, padding: "2.5rem 3rem",
             position: "relative", overflow: "hidden",
           }}>
             <div style={{
               position: "absolute", inset: 0, pointerEvents: "none",
               background: "radial-gradient(ellipse 80% 60% at 50% 100%, rgba(201,168,76,0.06), transparent)",
             }} />
-            <p style={{ fontSize: 11, color: "#C9A84C", fontWeight: 600, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 14 }}>
+            <p style={{ fontSize: 13, color: "#C9A84C", fontWeight: 600, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 14 }}>
               Notre raison d&apos;être
             </p>
             <p style={{
-              fontSize: "clamp(1rem, 2vw, 1.15rem)", color: "#c8d8ee",
-              lineHeight: 1.75, margin: 0,
+              fontSize: "clamp(1.1rem, 2.2vw, 1.3rem)", color: "#c8d8ee",
+              lineHeight: 1.8, margin: 0,
             }}>
-              Une plateforme de <strong style={{ color: "rgba(255,255,255,0.9)" }}>6 applications digitales d&apos;avant‑garde</strong> pour
+              Une plateforme de <strong style={{ color: "#ffffff" }}>6 applications digitales d&apos;avant‑garde</strong> pour
               surveiller, réguler et éduquer dans le paysage audiovisuel sénégalais.
             </p>
           </div>
@@ -298,11 +298,11 @@ export default function Home() {
         {/* Grille des applications */}
         <section id="applications" style={{ maxWidth: 1280, margin: "0 auto", padding: "4rem 2rem 2rem" }}>
           <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
-            <p style={{ fontSize: 11, color: "#C9A84C", fontWeight: 600, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 8 }}>
+            <p style={{ fontSize: 13, color: "#C9A84C", fontWeight: 600, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 8 }}>
               — Portail d&apos;accès —
             </p>
-            <h2 style={{ fontSize: 28, fontWeight: 700, color: "#fff" }}>Choisissez votre application</h2>
-            <p style={{ fontSize: 14, color: "#94b8d8", marginTop: 8 }}>
+            <h2 style={{ fontSize: 38, fontWeight: 800, color: "#fff" }}>Choisissez votre application</h2>
+            <p style={{ fontSize: 18, color: "#94b8d8", marginTop: 10 }}>
               Cliquez sur une application pour y accéder directement
             </p>
           </div>
@@ -348,15 +348,15 @@ export default function Home() {
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
-                      <h3 style={{ fontSize: 18, fontWeight: 700, color: "#fff" }}>{app.name}</h3>
+                      <h3 style={{ fontSize: 22, fontWeight: 800, color: "#fff" }}>{app.name}</h3>
                       <span style={{
-                        fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 6,
+                        fontSize: 12, fontWeight: 700, padding: "3px 10px", borderRadius: 6,
                         color: app.color, background: app.glow, border: `1px solid ${app.border}`,
                         letterSpacing: "0.05em",
                       }}>{app.tag}</span>
                     </div>
-                    <p style={{ fontSize: 12, color: app.color, fontWeight: 500, marginBottom: 8, opacity: 0.8 }}>{app.tagline}</p>
-                    <p style={{ fontSize: 13, color: "#c8d8ee", lineHeight: 1.65 }}>{app.desc}</p>
+                    <p style={{ fontSize: 15, color: app.color, fontWeight: 600, marginBottom: 10, opacity: 0.9 }}>{app.tagline}</p>
+                    <p style={{ fontSize: 15, color: "#c8d8ee", lineHeight: 1.7 }}>{app.desc}</p>
                   </div>
                 </div>
                 <div style={{
@@ -365,12 +365,12 @@ export default function Home() {
                 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                     <div style={{ width: 6, height: 6, borderRadius: "50%", background: app.color, animation: "badge-glow 2s infinite" }} />
-                    <span style={{ fontSize: 11, color: "#7aaac8", fontFamily: "monospace" }}>
+                    <span style={{ fontSize: 13, color: "#7aaac8", fontFamily: "monospace" }}>
                       cnra-{app.id}.vercel.app
                     </span>
                   </div>
                   <div style={{
-                    display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600,
+                    display: "flex", alignItems: "center", gap: 6, fontSize: 15, fontWeight: 700,
                     color: hovered === app.id ? app.color : "rgba(255,255,255,0.3)", transition: "color 0.3s",
                   }}>
                     Accéder <span style={{ fontSize: 16 }}>→</span>
@@ -394,13 +394,13 @@ export default function Home() {
             }} />
             <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "2rem", alignItems: "center" }}>
               <div>
-                <p style={{ fontSize: 11, color: "#C9A84C", fontWeight: 600, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 10 }}>
+                <p style={{ fontSize: 13, color: "#C9A84C", fontWeight: 600, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 10 }}>
                   Notre mission
                 </p>
-                <h2 style={{ fontSize: 22, fontWeight: 700, color: "#fff", marginBottom: 12, lineHeight: 1.3 }}>
+                <h2 style={{ fontSize: 32, fontWeight: 800, color: "#fff", marginBottom: 16, lineHeight: 1.3 }}>
                   Réguler, Protéger, Éduquer
                 </h2>
-                <p style={{ fontSize: 14, color: "#c8d8ee", lineHeight: 1.8, maxWidth: 520 }}>
+                <p style={{ fontSize: 17, color: "#c8d8ee", lineHeight: 1.85, maxWidth: 520 }}>
                   Le CNRA veille au respect du pluralisme, à la protection des auditeurs et téléspectateurs,
                   et à la qualité de l&apos;information diffusée sur les ondes sénégalaises.
                   Ce système numérique place ces missions au cœur de la gouvernance moderne.
@@ -422,8 +422,8 @@ export default function Home() {
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <span style={{ fontSize: 20 }}>🇸🇳</span>
               <div>
-                <p style={{ fontSize: 13, fontWeight: 700, color: "#ddeaf7" }}>République du Sénégal</p>
-                <p style={{ fontSize: 11, color: "#94b8d8" }}>Conseil National de Régulation de l&apos;Audiovisuel</p>
+                <p style={{ fontSize: 15, fontWeight: 700, color: "#ddeaf7" }}>République du Sénégal</p>
+                <p style={{ fontSize: 13, color: "#94b8d8" }}>Conseil National de Régulation de l&apos;Audiovisuel</p>
               </div>
             </div>
             <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
