@@ -278,7 +278,7 @@ export default function Home() {
               Notre raison d&apos;être
             </p>
             <p style={{
-              fontSize: "clamp(1rem, 2vw, 1.15rem)", color: "rgba(255,255,255,0.6)",
+              fontSize: "clamp(1rem, 2vw, 1.15rem)", color: "#c8d8ee",
               lineHeight: 1.75, margin: 0,
             }}>
               Une plateforme de <strong style={{ color: "rgba(255,255,255,0.9)" }}>6 applications digitales d&apos;avant‑garde</strong> pour
@@ -302,7 +302,7 @@ export default function Home() {
               — Portail d&apos;accès —
             </p>
             <h2 style={{ fontSize: 28, fontWeight: 700, color: "#fff" }}>Choisissez votre application</h2>
-            <p style={{ fontSize: 14, color: "rgba(255,255,255,0.4)", marginTop: 8 }}>
+            <p style={{ fontSize: 14, color: "#94b8d8", marginTop: 8 }}>
               Cliquez sur une application pour y accéder directement
             </p>
           </div>
@@ -356,7 +356,7 @@ export default function Home() {
                       }}>{app.tag}</span>
                     </div>
                     <p style={{ fontSize: 12, color: app.color, fontWeight: 500, marginBottom: 8, opacity: 0.8 }}>{app.tagline}</p>
-                    <p style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", lineHeight: 1.65 }}>{app.desc}</p>
+                    <p style={{ fontSize: 13, color: "#c8d8ee", lineHeight: 1.65 }}>{app.desc}</p>
                   </div>
                 </div>
                 <div style={{
@@ -365,7 +365,7 @@ export default function Home() {
                 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                     <div style={{ width: 6, height: 6, borderRadius: "50%", background: app.color, animation: "badge-glow 2s infinite" }} />
-                    <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontFamily: "monospace" }}>
+                    <span style={{ fontSize: 11, color: "#7aaac8", fontFamily: "monospace" }}>
                       cnra-{app.id}.vercel.app
                     </span>
                   </div>
@@ -400,7 +400,7 @@ export default function Home() {
                 <h2 style={{ fontSize: 22, fontWeight: 700, color: "#fff", marginBottom: 12, lineHeight: 1.3 }}>
                   Réguler, Protéger, Éduquer
                 </h2>
-                <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", lineHeight: 1.8, maxWidth: 520 }}>
+                <p style={{ fontSize: 14, color: "#c8d8ee", lineHeight: 1.8, maxWidth: 520 }}>
                   Le CNRA veille au respect du pluralisme, à la protection des auditeurs et téléspectateurs,
                   et à la qualité de l&apos;information diffusée sur les ondes sénégalaises.
                   Ce système numérique place ces missions au cœur de la gouvernance moderne.
@@ -408,7 +408,7 @@ export default function Home() {
               </div>
               <div style={{ textAlign: "center", padding: "1rem 2rem" }}>
                 <p style={{ fontSize: 48, fontWeight: 800, color: "#C9A84C", lineHeight: 1 }}>2025</p>
-                <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 4, letterSpacing: "0.1em", textTransform: "uppercase" }}>
+                <p style={{ fontSize: 11, color: "#94b8d8", marginTop: 4, letterSpacing: "0.1em", textTransform: "uppercase" }}>
                   Mise en service
                 </p>
               </div>
@@ -422,8 +422,8 @@ export default function Home() {
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <span style={{ fontSize: 20 }}>🇸🇳</span>
               <div>
-                <p style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.6)" }}>République du Sénégal</p>
-                <p style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>Conseil National de Régulation de l&apos;Audiovisuel</p>
+                <p style={{ fontSize: 13, fontWeight: 700, color: "#ddeaf7" }}>République du Sénégal</p>
+                <p style={{ fontSize: 11, color: "#94b8d8" }}>Conseil National de Régulation de l&apos;Audiovisuel</p>
               </div>
             </div>
             <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
@@ -436,8 +436,8 @@ export default function Home() {
                 </a>
               ))}
             </div>
-            <p style={{ fontSize: 11, color: "rgba(255,255,255,0.2)" }}>
-              Développé par <span style={{ color: "rgba(255,255,255,0.4)", fontWeight: 600 }}>Processingenierie</span>
+            <p style={{ fontSize: 11, color: "#7aaac8" }}>
+              Développé par <span style={{ color: "#c8d8ee", fontWeight: 600 }}>Processingenierie</span>
             </p>
           </div>
         </footer>
