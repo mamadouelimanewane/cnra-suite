@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { Database, Hash, Cpu, Calendar } from "lucide-react"
+import { Database, Hash, Cpu, Calendar, AlertCircle, X, Search } from "lucide-react"
+import { PageSkeleton } from "@/components/PageSkeleton"
+import { EmptyState } from "@/components/EmptyState"
 
 type Signature = {
   id: string
@@ -20,11 +22,14 @@ export default function SignaturesPage() {
   const supabaseRef = useRef(createClient())
   const [signatures, setSignatures] = useState<Signature[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [search, setSearch] = useState("")
 
   useEffect(() => {
     const supabase = supabaseRef.current
     async function load() {
-      const { data } = await supabase.from("signatures_deepfake").select("*").order("date_ajout", { ascending: false })
+      const { data, error: err } = await supabase.from("signatures_deepfake").select("*").order("date_ajout", { ascending: false })
+      if (err) { setError(err.message); setLoading(false); return }
       setSignatures(data || [])
       setLoading(false)
     }
@@ -33,16 +38,33 @@ export default function SignaturesPage() {
 
   const TYPE_ICON: Record<string, string> = { video: "📹", audio: "🎵", image: "🖼️" }
 
+  const filtered = signatures.filter(s => !search || s.hash_contenu.toLowerCase().includes(search.toLowerCase()) || (s.technique || "").toLowerCase().includes(search.toLowerCase()))
+
+  if (loading) return <PageSkeleton rows={4} />
+
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
+      {error && (
+        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3">
+          <AlertCircle className="size-5 text-red-400 shrink-0" />
+          <p className="text-sm text-red-400">{error}</p>
+          <button onClick={() => setError(null)} className="ml-auto text-red-400 hover:text-red-300"><X className="size-4" /></button>
+        </div>
+      )}
       <div>
         <h1 className="text-2xl font-black text-white flex items-center gap-3">
-          <Database className="size-6 text-purple-400" /> Base de signatures IA
+          <Database className="size-6 text-emerald-400" /> Base de signatures IA
         </h1>
         <p className="text-sm text-gray-400 mt-1">{signatures.length} signatures de deepfakes référencées</p>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-500" />
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher par hash, technique..."
+          className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500/50" />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {["video", "audio", "image"].map(type => (
           <div key={type} className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
             <p className="text-2xl mb-1">{TYPE_ICON[type]}</p>
@@ -53,9 +75,7 @@ export default function SignaturesPage() {
       </div>
 
       <div className="space-y-3">
-        {loading ? (
-          Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-28 rounded-2xl bg-white/5 animate-pulse" />)
-        ) : signatures.map(sig => (
+        {filtered.map(sig => (
           <div key={sig.id} className={`bg-white/5 border rounded-2xl p-5 ${sig.actif ? "border-white/10" : "border-white/5 opacity-50"}`}>
             <div className="flex items-start gap-4">
               <div className="text-2xl shrink-0">{TYPE_ICON[sig.type_signature]}</div>
@@ -88,6 +108,9 @@ export default function SignaturesPage() {
             </div>
           </div>
         ))}
+        {filtered.length === 0 && (
+          <EmptyState icon={Database} title="Aucune signature trouvée" description="Aucune signature ne correspond à votre recherche." />
+        )}
       </div>
     </div>
   )

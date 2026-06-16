@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts"
+import { AlertCircle } from "lucide-react"
+import { PageSkeleton } from "@/components/PageSkeleton"
 
 interface Obs {
   thematique: string; ton: string | null; duree_minutes: number | null; media_nom: string | null; date_obs: string
@@ -13,13 +15,19 @@ const COLORS = ["#1A3A6B","#C9A84C","#166534","#dc2626","#7c3aed","#0891b2","#d9
 export default function ThematiquesPage() {
   const supabaseRef = useRef(createClient())
   const [obs, setObs] = useState<Obs[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     supabaseRef.current.from("observations_contenu")
       .select("thematique,ton,duree_minutes,date_obs,medias:media_id(nom)")
-      .then(r => setObs((r.data ?? []).map((x: Record<string, unknown>) => ({
-        ...x, media_nom: (x.medias as { nom: string } | null)?.nom ?? null
-      })) as Obs[]))
+      .then(r => {
+        if (r.error) { setError(r.error.message); setLoading(false); return }
+        setObs((r.data ?? []).map((x: Record<string, unknown>) => ({
+          ...x, media_nom: (x.medias as { nom: string } | null)?.nom ?? null
+        })) as Obs[])
+        setLoading(false)
+      })
   }, [])
 
   const byTheme = Object.entries(
@@ -36,14 +44,22 @@ export default function ThematiquesPage() {
     return { media: (media as string).split(" ")[0], ...Object.fromEntries(themes) }
   })
 
+  if (loading) return <PageSkeleton rows={3} />
+
   return (
-    <div className="p-8 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
+      {error && (
+        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3">
+          <AlertCircle className="size-5 text-red-400 shrink-0" />
+          <p className="text-sm text-red-400">{error}</p>
+        </div>
+      )}
       <div>
         <h1 className="text-2xl font-black text-gray-900">Analyse thématique</h1>
         <p className="text-gray-500 text-sm mt-1">Répartition des thèmes traités par les médias surveillés</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {/* Fréquence thèmes */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
           <h3 className="font-bold text-gray-900 mb-4">Fréquence des thèmes</h3>

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, Globe, MapPin, Phone, Mail, Calendar, FileText, Users, BarChart2, Tv, Radio } from "lucide-react"
+import { ArrowLeft, Globe, MapPin, Calendar, FileText, Users, BarChart2, Tv, Radio, AlertCircle } from "lucide-react"
 import { formatNumber } from "@/lib/utils"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 
@@ -29,6 +29,8 @@ export default function FicheMediaPage() {
   const [audits, setAudits] = useState<Audit[]>([])
   const [stats, setStats] = useState<StatsAud[]>([])
   const [journalistes, setJournalistes] = useState<Journaliste[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     Promise.all([
@@ -38,15 +40,19 @@ export default function FicheMediaPage() {
       supabase.from("stats_audience").select("trimestre,annee,audience_hebdo,parts_marche").eq("media_id", id).order("annee").order("trimestre"),
       supabase.from("journalistes").select("id,prenom,nom,poste").eq("media_id", id),
     ]).then(([m, p, a, s, j]) => {
+      if (m.error) { setError(m.error.message); setLoading(false); return }
       setMedia(m.data as Media)
       setProgrammes((p.data ?? []) as Programme[])
       setAudits((a.data ?? []) as Audit[])
       setStats((s.data ?? []) as StatsAud[])
       setJournalistes((j.data ?? []) as Journaliste[])
+      setLoading(false)
     })
   }, [id])
 
-  if (!media) return <div className="p-8 text-gray-400">Chargement…</div>
+  if (loading) return <div className="p-4 sm:p-6 space-y-6 animate-pulse"><div className="h-8 w-64 bg-gray-200 rounded-xl" /><div className="h-48 rounded-2xl bg-gray-100" /></div>
+  if (error) return <div className="p-4 m-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3"><AlertCircle className="size-5 text-red-500 shrink-0" /><p className="text-sm text-red-700">{error}</p></div>
+  if (!media) return null
 
   const dernierAudit = audits[0]
   const statsChart = stats.map(s => ({ label: `T${s.trimestre} ${s.annee}`, audience: Math.round(s.audience_hebdo / 1000), part: s.parts_marche }))
@@ -54,7 +60,7 @@ export default function FicheMediaPage() {
   const TypeIcon = media.type === "television" ? Tv : media.type === "radio" ? Radio : Globe
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
       {/* Back + Header */}
       <button onClick={() => router.back()} className="flex items-center gap-2 text-sm text-gray-500 hover:text-[#1A3A6B] transition-colors mb-2">
         <ArrowLeft className="size-4" />
@@ -90,7 +96,7 @@ export default function FicheMediaPage() {
       </div>
 
       {/* Infos admin */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {[
           { label: "Agrément CNRA", value: media.numero_agrement ?? "—", icon: FileText },
           { label: "Date de création", value: media.date_creation ? new Date(media.date_creation).toLocaleDateString("fr-FR") : "—", icon: Calendar },
@@ -127,7 +133,7 @@ export default function FicheMediaPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {/* Journalistes */}
         {journalistes.length > 0 && (
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">

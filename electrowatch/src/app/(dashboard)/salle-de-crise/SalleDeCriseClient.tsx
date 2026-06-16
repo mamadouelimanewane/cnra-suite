@@ -211,14 +211,14 @@ export function SalleDeCriseClient() {
 
       <div className="p-8 space-y-8">
         {/* KPIs animés */}
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <LiveCounter value={nbInterventions} label="Interventions" color="#3b82f6" icon={Activity} />
           <LiveCounter value={formatDuree(totalSecondes)} label="Temps total" color="#22c55e" icon={Clock} />
           <LiveCounter value={nbAlertes} label="Alertes actives" color="#ef4444" icon={AlertTriangle} />
           <LiveCounter value={6} label="Médias surveillés" color="#a855f7" icon={Shield} />
         </div>
 
-        <div className="grid grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {/* Flux interventions en temps réel */}
           <div className="col-span-2 space-y-4">
             <div className="flex items-center gap-3">
@@ -310,7 +310,7 @@ export function SalleDeCriseClient() {
               ) : alertes.map(a => (
                 <div key={a.id} className="rounded-xl border p-4 space-y-2"
                   style={{ borderColor: niveauColor(a.niveau) + "40", background: niveauColor(a.niveau) + "08" }}>
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
                       <PulsingDot color={niveauColor(a.niveau)} />
                       <span className="text-xs font-bold uppercase tracking-wide" style={{ color: niveauColor(a.niveau) }}>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { Tv, Radio, Globe, Search, CheckCircle, XCircle } from "lucide-react"
+import { Tv, Radio, Globe, Search, CheckCircle, XCircle, AlertCircle } from "lucide-react"
 
 interface Media { id: string; nom: string; sigle: string | null; type: string; statut: string; region: string | null; langue: string }
 
@@ -15,10 +15,12 @@ export default function MediasPage() {
   const [search, setSearch] = useState("")
   const [type, setType] = useState("tous")
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    supabase.from("medias").select("*").order("nom").then(({ data }) => {
-      setMedias((data ?? []) as Media[])
+    supabase.from("medias").select("*").order("nom").then(({ data, error: err }) => {
+      if (err) setError("Impossible de charger la liste des médias. Veuillez réessayer.")
+      else setMedias((data ?? []) as Media[])
       setLoading(false)
     })
   }, [])
@@ -33,13 +35,19 @@ export default function MediasPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3">
+          <AlertCircle className="size-5 text-red-500 shrink-0" />
+          <p className="text-sm text-red-700">{error}</p>
+        </div>
+      )}
       <div>
         <h1 className="text-3xl font-black text-[#1A3A6B] mb-2">Médias agréés au Sénégal</h1>
         <p className="text-gray-500">Liste officielle des médias audiovisuels sous régulation du CNRA</p>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-4 gap-4">
         {[
           { label: "Télévisions", value: stats.tv, Icon: Tv, color: "bg-blue-50 text-[#1A3A6B]" },
           { label: "Radios", value: stats.radio, Icon: Radio, color: "bg-purple-50 text-purple-700" },
@@ -76,10 +84,11 @@ export default function MediasPage() {
         <div className="text-center py-12 text-gray-400">Chargement…</div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filtered.map(m => {
+          {filtered.map((m, idx) => {
             const Icon = TYPE_ICON[m.type as keyof typeof TYPE_ICON] ?? Globe
+            const delays = ["animate-delay-100", "animate-delay-200", "animate-delay-300", "animate-delay-400"]
             return (
-              <div key={m.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition-shadow">
+              <div key={m.id} className={`bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition-shadow animate-fade-in-up ${delays[idx % 4]}`}>
                 <div className="flex items-start justify-between mb-4">
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
                     m.type === "television" ? "bg-blue-100" : m.type === "radio" ? "bg-purple-100" : "bg-green-100"

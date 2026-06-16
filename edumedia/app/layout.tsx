@@ -5,8 +5,8 @@ import "./globals.css"
 const geist = Geist({ variable: "--font-sans", subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "CNRA EduMedia — Éducation aux médias et à l'information",
-  description: "Plateforme d'éducation aux médias, de formation à la littératie médiatique et de ressources pédagogiques du CNRA Sénégal.",
+  title: { template: '%s — CNRA EduMedia', default: 'CNRA EduMedia' },
+  description: 'Éducation aux médias et littératie médiatique',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

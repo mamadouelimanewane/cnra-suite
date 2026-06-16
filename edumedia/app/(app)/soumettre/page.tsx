@@ -48,7 +48,7 @@ export default function SoumettreePage() {
   const labelClass = "block text-xs font-bold text-gray-400 uppercase tracking-wide mb-2"
 
   return (
-    <div className="p-6 max-w-2xl">
+    <div className="p-4 sm:p-6 max-w-2xl">
       <div className="mb-6">
         <h1 className="text-2xl font-black text-white flex items-center gap-3">
           <Upload className="size-6 text-purple-400" /> Soumettre un contenu
@@ -80,7 +80,7 @@ export default function SoumettreePage() {
             placeholder="Ex: Vidéo virale attribuée au Président..." className={inputClass} />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className={labelClass}>Type de contenu *</label>
             <select value={form.type_contenu} onChange={e => setForm(f => ({ ...f, type_contenu: e.target.value }))}

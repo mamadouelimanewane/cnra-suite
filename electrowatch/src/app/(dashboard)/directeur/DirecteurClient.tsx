@@ -127,9 +127,9 @@ export function DirecteurClient() {
   const scoreBg = scoreEquite >= 80 ? "from-green-50 to-green-100" : scoreEquite >= 60 ? "from-yellow-50 to-yellow-100" : "from-red-50 to-red-100"
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-[#1A3A6B] flex items-center gap-2">
             <Shield className="size-6" /> Tableau de bord Directeur
@@ -171,7 +171,7 @@ export function DirecteurClient() {
           </div>
 
           {/* KPIs */}
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
               { label: "Interventions enregistrées", value: statsGlobales.totalInterventions, icon: Clock, color: "text-blue-600 bg-blue-50" },
               { label: "Heures de monitoring", value: `${statsGlobales.totalHeures}h`, icon: Tv, color: "text-purple-600 bg-purple-50" },
@@ -189,7 +189,7 @@ export function DirecteurClient() {
           </div>
 
           {/* Charts row */}
-          <div className="grid grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Évolution score */}
             <div className="col-span-2 bg-white rounded-xl border border-gray-100 p-6">
               <h3 className="font-semibold text-gray-900 mb-4">Évolution du score d&apos;équité</h3>

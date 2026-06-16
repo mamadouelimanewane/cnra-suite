@@ -123,7 +123,7 @@ export function ObservatoireClient() {
                     {new Date(campagne.date_fin).toLocaleDateString("fr-SN", { day: "numeric", month: "long", year: "numeric" })}
                   </p>
                 </div>
-                <div className="grid grid-cols-2 gap-4 text-center">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center">
                   <div className="bg-gray-50 rounded-lg px-4 py-3">
                     <p className="text-2xl font-bold text-[#1A3A6B]">{statsPartis.length}</p>
                     <p className="text-xs text-gray-500">Partis suivis</p>

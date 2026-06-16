@@ -112,7 +112,7 @@ export default function AccueilPage() {
                 Voir détails <ChevronRight className="size-4" />
               </Link>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-6 text-center">
+            <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-5 gap-6 text-center">
               {[
                 { label: "Interventions", value: stats.totalInterventions, color: "#1A3A6B" },
                 { label: "Temps total", value: null, custom: formatDuree(stats.totalSecondes), color: "#166534" },
@@ -195,7 +195,7 @@ export default function AccueilPage() {
                 ))}
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[
                 { label: "Médias agréés", value: "200+", icon: Radio },
                 { label: "Années d'existence", value: "25+", icon: Shield },

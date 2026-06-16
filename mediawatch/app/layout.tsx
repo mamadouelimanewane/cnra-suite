@@ -5,8 +5,8 @@ import "./globals.css"
 const geist = Geist({ variable: "--font-sans", subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "CNRA MediaWatch — Veille et monitoring des médias sénégalais",
-  description: "Plateforme de surveillance des contenus audiovisuels, analyse du temps de parole, détection de biais et alertes en temps réel.",
+  title: { template: '%s — CNRA MediaWatch', default: 'CNRA MediaWatch' },
+  description: 'Veille permanente du paysage audiovisuel sénégalais',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

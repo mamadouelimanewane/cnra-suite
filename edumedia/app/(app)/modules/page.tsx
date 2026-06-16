@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { formatNumber } from "@/lib/utils"
-import { Video, Clock, Users, Star, Award } from "lucide-react"
+import { Video, Clock, Users, Star, Award, AlertCircle, X } from "lucide-react"
+import { PageSkeleton } from "@/components/PageSkeleton"
+import { EmptyState } from "@/components/EmptyState"
 
 type Module = {
   id: string
@@ -45,20 +47,31 @@ export default function ModulesPage() {
   const supabaseRef = useRef(createClient())
   const [modules, setModules] = useState<Module[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [selected, setSelected] = useState<Module | null>(null)
 
   useEffect(() => {
     const supabase = supabaseRef.current
     async function load() {
-      const { data } = await supabase.from("modules_formation").select("*").eq("actif", true).order("nb_inscrits", { ascending: false })
+      const { data, error: err } = await supabase.from("modules_formation").select("*").eq("actif", true).order("nb_inscrits", { ascending: false })
+      if (err) { setError(err.message); setLoading(false); return }
       setModules(data || [])
       setLoading(false)
     }
     load()
   }, [])
 
+  if (loading) return <PageSkeleton rows={4} />
+
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
+      {error && (
+        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3">
+          <AlertCircle className="size-5 text-red-400 shrink-0" />
+          <p className="text-sm text-red-400">{error}</p>
+          <button onClick={() => setError(null)} className="ml-auto text-red-400 hover:text-red-300"><X className="size-4" /></button>
+        </div>
+      )}
       <div>
         <h1 className="text-2xl font-black text-white flex items-center gap-3">
           <Video className="size-6 text-emerald-400" /> Modules de formation
@@ -68,9 +81,7 @@ export default function ModulesPage() {
 
       <div className="flex gap-4">
         <div className={`flex-1 space-y-3 ${selected ? "max-h-[calc(100vh-12rem)] overflow-y-auto pr-2" : ""}`}>
-          {loading ? (
-            Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-32 rounded-2xl bg-white/5 animate-pulse" />)
-          ) : modules.map(m => (
+          {modules.map(m => (
             <button key={m.id} onClick={() => setSelected(selected?.id === m.id ? null : m)}
               className={`w-full text-left rounded-2xl p-5 border transition-all ${selected?.id === m.id ? "border-emerald-500/50 bg-emerald-500/5" : "bg-white/5 border-white/10 hover:border-emerald-500/30"}`}>
               <div className="flex items-start gap-3">
@@ -108,6 +119,9 @@ export default function ModulesPage() {
               </div>
             </button>
           ))}
+          {modules.length === 0 && (
+            <EmptyState icon={Video} title="Aucun module" description="Aucun module de formation disponible pour le moment." />
+          )}
         </div>
 
         {selected && (

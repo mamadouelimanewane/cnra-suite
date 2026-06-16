@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { cn } from "@/lib/utils"
-import { Plus, Radio, Tv, Globe, Pencil } from "lucide-react"
+import { Plus, Radio, Tv, Globe, Pencil, Search, AlertCircle } from "lucide-react"
 import type { Media, TypeMedia, StatutMedia } from "@/types"
 
 const TYPE_ICON = { television: Tv, radio: Radio, en_ligne: Globe }
@@ -26,6 +26,10 @@ export function MediasClient() {
   const [editing, setEditing] = useState<Media | null>(null)
   const [saving, setSaving] = useState(false)
   const [filtreType, setFiltreType] = useState<string>("")
+  const [search, setSearch] = useState("")
+  const [error, setError] = useState<string | null>(null)
+  const [page, setPage] = useState(0)
+  const PAGE_SIZE = 20
   const [form, setForm] = useState({
     nom: "", sigle: "", type: "television" as TypeMedia,
     statut: "actif" as StatutMedia, region: "", langue: "Français",
@@ -33,7 +37,8 @@ export function MediasClient() {
 
   const charger = useCallback(async () => {
     const supabase = createClient()
-    const { data } = await supabase.from("medias").select("*").order("nom")
+    const { data, error: err } = await supabase.from("medias").select("*").order("nom")
+    if (err) setError("Impossible de charger les médias")
     setMedias(data ?? [])
     setLoading(false)
   }, [])
@@ -65,11 +70,27 @@ export function MediasClient() {
     charger()
   }
 
-  const filtered = filtreType ? medias.filter((m) => m.type === filtreType) : medias
+  const typeFiltered = filtreType ? medias.filter((m) => m.type === filtreType) : medias
+  const filtered = search
+    ? typeFiltered.filter(m =>
+        m.nom.toLowerCase().includes(search.toLowerCase()) ||
+        (m.sigle ?? "").toLowerCase().includes(search.toLowerCase()) ||
+        (m.region ?? "").toLowerCase().includes(search.toLowerCase())
+      )
+    : typeFiltered
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
+  const paginated = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3">
+          <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />
+          <p className="text-sm text-red-700">{error}</p>
+        </div>
+      )}
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-bold text-gray-900">Médias régulés</h2>
           <p className="text-sm text-gray-500 mt-0.5">{medias.filter(m => m.statut === "actif").length} médias actifs</p>
@@ -138,7 +159,15 @@ export function MediasClient() {
         </div>
       )}
 
-      {/* Filtres type */}
+      {/* Search + Filtres type */}
+      <div className="flex gap-3 flex-wrap items-center">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input value={search} onChange={e => { setSearch(e.target.value); setPage(0) }}
+            placeholder="Rechercher..."
+            className="pl-9 pr-4 py-2 text-sm bg-white border border-gray-200 rounded-lg w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-[#1A3A6B]/20" />
+        </div>
+      </div>
       <div className="flex gap-2 flex-wrap">
         {(["", "television", "radio", "en_ligne"] as const).map((t) => (
           <button key={t} onClick={() => setFiltreType(t)}
@@ -156,8 +185,9 @@ export function MediasClient() {
           <div className="w-7 h-7 border-2 border-[#1A3A6B] border-t-transparent rounded-full animate-spin" />
         </div>
       ) : (
+        <>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map((m) => {
+          {paginated.map((m) => {
             const Icon = TYPE_ICON[m.type] ?? Radio
             return (
               <div key={m.id} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
@@ -184,6 +214,19 @@ export function MediasClient() {
             )
           })}
         </div>
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+            <p className="text-sm text-gray-500">{filtered.length} résultats</p>
+            <div className="flex gap-2">
+              <button disabled={page === 0} onClick={() => setPage(p => p - 1)}
+                className="px-3 py-1.5 text-sm border rounded-lg disabled:opacity-40 hover:bg-gray-50">Précédent</button>
+              <span className="px-3 py-1.5 text-sm text-gray-600">{page + 1}/{totalPages}</span>
+              <button disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}
+                className="px-3 py-1.5 text-sm border rounded-lg disabled:opacity-40 hover:bg-gray-50">Suivant</button>
+            </div>
+          </div>
+        )}
+        </>
       )}
     </div>
   )

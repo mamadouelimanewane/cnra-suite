@@ -1,9 +1,10 @@
-﻿"use client"
+"use client"
 
 import { useEffect, useRef, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { Tv, Radio, Globe, MapPin, Building2, Users } from "lucide-react"
-import { PieChart, Pie, Cell, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis } from "recharts"
+import { Tv, Radio, Globe, MapPin, AlertCircle } from "lucide-react"
+import { PieChart, Pie, Cell, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts"
+import { PageSkeleton } from "@/components/PageSkeleton"
 
 interface Media {
   id: string; nom: string; type: string; statut: string; ville: string | null; couverture: string | null;
@@ -15,14 +16,22 @@ const COUVERTURE_COLORS = { nationale: "#1A3A6B", regionale: "#C9A84C", internat
 export default function PaysagePage() {
   const supabaseRef = useRef(createClient())
   const [medias, setMedias] = useState<Media[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const supabase = supabaseRef.current
     supabase.from("medias")
       .select("id,nom,type,statut,ville,couverture,langue,groupes_media:groupe_id(nom)")
       .order("nom")
-      .then(r => setMedias((r.data ?? []) as Media[]))
+      .then(r => {
+        if (r.error) { setError(r.error.message); setLoading(false); return }
+        setMedias((r.data ?? []) as Media[])
+        setLoading(false)
+      })
   }, [])
+
+  if (loading) return <PageSkeleton rows={3} />
 
   const byType = [
     { name: "Télévision", count: medias.filter(m => m.type === "television").length, color: "#1A3A6B", icon: Tv },
@@ -49,14 +58,21 @@ export default function PaysagePage() {
   ).map(([name, value]) => ({ name, value }))
 
   return (
-    <div className="p-8 space-y-8">
+    <div className="p-4 sm:p-6 space-y-8">
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3">
+          <AlertCircle className="size-5 text-red-500 shrink-0" />
+          <p className="text-sm text-red-700">{error}</p>
+        </div>
+      )}
+
       <div>
         <h1 className="text-2xl font-black text-gray-900">Paysage médiatique</h1>
         <p className="text-gray-500 text-sm mt-1">Panorama structurel du paysage audiovisuel et numérique sénégalais</p>
       </div>
 
       {/* Stats rapides */}
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {byType.map(t => (
           <div key={t.name} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
             <div className="flex items-center gap-4 mb-4">
@@ -78,7 +94,7 @@ export default function PaysagePage() {
       </div>
 
       {/* Charts répartition */}
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
           <h3 className="font-bold text-gray-900 mb-4">Par couverture</h3>
           <ResponsiveContainer width="100%" height={160}>
@@ -95,7 +111,7 @@ export default function PaysagePage() {
           <h3 className="font-bold text-gray-900 mb-4">Par statut</h3>
           <div className="space-y-3 mt-6">
             {byStatut.map(s => (
-              <div key={s.name} className="flex items-center justify-between">
+              <div key={s.name} className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full" style={{ background: s.color }} />
                   <span className="text-sm text-gray-700">{s.name}</span>
@@ -185,4 +201,3 @@ export default function PaysagePage() {
     </div>
   )
 }
-

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import type { Sanction, MiseEnDemeure, Media, Campagne } from "@/types"
-import { AlertTriangle, FileText, Gavel, Plus, ChevronDown, ChevronRight } from "lucide-react"
+import { AlertTriangle, FileText, Gavel, Plus, ChevronRight, AlertCircle } from "lucide-react"
 
 const TYPE_LABELS: Record<string, { label: string; color: string }> = {
   avertissement:       { label: "Avertissement",         color: "bg-yellow-100 text-yellow-800" },
@@ -24,6 +24,7 @@ export function SanctionsClient() {
   const [tab, setTab] = useState<"sanctions" | "mises_en_demeure">("sanctions")
   const [showForm, setShowForm] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   // Form state
   const [formType, setFormType] = useState<"sanction" | "mise_en_demeure">("sanction")
@@ -48,6 +49,7 @@ export function SanctionsClient() {
       supabase.from("medias").select("*").eq("statut", "actif"),
       supabase.from("campagnes").select("*").order("date_debut", { ascending: false }),
     ])
+    if (s.error) setError("Impossible de charger les sanctions")
     setSanctions((s.data ?? []) as Sanction[])
     setMises((m.data ?? []) as MiseEnDemeure[])
     setMedias((med.data ?? []) as Media[])
@@ -90,9 +92,16 @@ export function SanctionsClient() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3">
+          <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />
+          <p className="text-sm text-red-700">{error}</p>
+        </div>
+      )}
+
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-[#1A3A6B] flex items-center gap-2">
             <Gavel className="size-6" /> Sanctions & Procédures
@@ -108,7 +117,7 @@ export function SanctionsClient() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: "Total sanctions", value: sanctions.length, icon: Gavel, color: "text-red-600 bg-red-50" },
           { label: "Mises en demeure", value: mises.length, icon: FileText, color: "text-orange-600 bg-orange-50" },
@@ -226,7 +235,7 @@ export function SanctionsClient() {
               </div>
             </div>
             <div className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-medium text-gray-500 uppercase mb-1 block">Média *</label>
                   <select value={selectedMedia} onChange={e => setSelectedMedia(e.target.value)}
@@ -254,7 +263,7 @@ export function SanctionsClient() {
                       {Object.entries(TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                     </select>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="text-xs font-medium text-gray-500 uppercase mb-1 block">Montant (FCFA)</label>
                       <input type="number" value={montant} onChange={e => setMontant(e.target.value)}

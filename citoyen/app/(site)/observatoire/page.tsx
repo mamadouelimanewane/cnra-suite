@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts"
 import { formatDuree, formatDate } from "@/lib/utils"
-import { Activity, Clock, Radio, Users, AlertTriangle } from "lucide-react"
+import { Activity, Clock, Radio, Users, AlertTriangle, AlertCircle, Download } from "lucide-react"
 
 interface StatParti { parti_nom: string; parti_sigle: string; parti_couleur: string; total_secondes: number; pourcentage: number; nb_interventions: number }
 interface StatMedia { media_nom: string; media_type: string; total_secondes: number; nb_interventions: number }
@@ -17,10 +17,16 @@ export default function ObservatoirePage() {
   const [statsMedia, setStatsMedia] = useState<StatMedia[]>([])
   const [alertes, setAlertes] = useState<number>(0)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     async function load() {
-      const { data: c } = await supabase.from("campagnes").select("*").eq("statut", "en_cours").limit(1).single()
+      const { data: c, error: err } = await supabase.from("campagnes").select("*").eq("statut", "en_cours").limit(1).single()
+      if (err && err.code !== "PGRST116") {
+        setError("Impossible de charger les données de l'observatoire.")
+        setLoading(false)
+        return
+      }
       if (!c) { setLoading(false); return }
       setCampagne(c as Campagne)
       const [sp, sm, al] = await Promise.all([
@@ -42,6 +48,12 @@ export default function ObservatoirePage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3">
+          <AlertCircle className="size-5 text-red-500 shrink-0" />
+          <p className="text-sm text-red-700">{error}</p>
+        </div>
+      )}
       {/* Header */}
       <div>
         <h1 className="text-3xl font-black text-[#1A3A6B] mb-2">Observatoire du pluralisme</h1>
@@ -75,7 +87,7 @@ export default function ObservatoirePage() {
           </div>
 
           {/* KPIs */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-4 gap-4">
             {[
               { icon: Clock, label: "Temps total surveillé", value: formatDuree(totalSec), color: "text-[#1A3A6B] bg-blue-50" },
               { icon: Users, label: "Partis monitorés", value: statsParti.length, color: "text-purple-700 bg-purple-50" },
@@ -163,6 +175,16 @@ export default function ObservatoirePage() {
             <div className="px-6 py-3 bg-gray-50 border-t border-gray-100">
               <p className="text-xs text-gray-400">Données mises à jour en temps réel · Source : CNRA ElectroWatch</p>
             </div>
+          </div>
+
+          {/* CTA rapports */}
+          <div className="flex justify-center">
+            <a
+              href="/decisions"
+              className="flex items-center gap-2 px-6 py-3 bg-[#1A3A6B] text-white font-bold rounded-xl text-sm hover:bg-[#0f2347] transition-colors"
+            >
+              <Download className="size-4" /> Voir tous les rapports CNRA
+            </a>
           </div>
         </>
       )}

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import type { Signalement, Media } from "@/types"
-import { MessageSquare, Eye, CheckCircle, Archive } from "lucide-react"
+import { MessageSquare, Eye, CheckCircle, Archive, Search, AlertCircle } from "lucide-react"
 
 const STATUT_CONFIG = {
   recu:       { label: "Reçu",       color: "bg-blue-100 text-blue-700" },
@@ -25,15 +25,20 @@ export function SignalementsClient() {
   const [loading, setLoading] = useState(true)
   const [filtre, setFiltre] = useState<string>("tous")
   const [selected, setSelected] = useState<Signalement | null>(null)
+  const [search, setSearch] = useState("")
+  const [error, setError] = useState<string | null>(null)
+  const [page, setPage] = useState(0)
+  const PAGE_SIZE = 20
 
   useEffect(() => { load() }, [])
 
   async function load() {
     setLoading(true)
-    const { data } = await supabase
+    const { data, error: err } = await supabase
       .from("signalements")
       .select("*, media:medias(*), campagne:campagnes(*)")
       .order("created_at", { ascending: false })
+    if (err) setError("Impossible de charger les signalements")
     setSignalements((data ?? []) as Signalement[])
     setLoading(false)
   }
@@ -44,16 +49,40 @@ export function SignalementsClient() {
     setSelected(null)
   }
 
-  const filtered = filtre === "tous" ? signalements : signalements.filter(s => s.statut === filtre)
+  const baseFiltered = filtre === "tous" ? signalements : signalements.filter(s => s.statut === filtre)
+  const filtered = search
+    ? baseFiltered.filter(s =>
+        (s.nom_signalant ?? "").toLowerCase().includes(search.toLowerCase()) ||
+        TYPE_CONFIG[s.type_infraction].toLowerCase().includes(search.toLowerCase()) ||
+        ((s.media as Media)?.nom ?? "").toLowerCase().includes(search.toLowerCase())
+      )
+    : baseFiltered
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
+  const paginated = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-4 sm:p-6 space-y-6">
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3 mb-4">
+          <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />
+          <p className="text-sm text-red-700">{error}</p>
+        </div>
+      )}
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-[#1A3A6B] flex items-center gap-2">
             <MessageSquare className="size-6" /> Signalements citoyens
           </h1>
           <p className="text-gray-500 text-sm mt-1">Infractions signalées par les citoyens et la société civile</p>
+        </div>
+        <div className="flex flex-wrap gap-2 items-center">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input value={search} onChange={e => { setSearch(e.target.value); setPage(0) }}
+              placeholder="Rechercher..."
+              className="pl-9 pr-4 py-2 text-sm bg-white border border-gray-200 rounded-lg w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-[#1A3A6B]/20" />
+          </div>
         </div>
         <div className="flex gap-2 text-sm">
           {[["tous", "Tous"], ["recu", "Reçus"], ["en_examen", "En examen"], ["traite", "Traités"]].map(([v, l]) => (
@@ -66,7 +95,7 @@ export function SignalementsClient() {
       </div>
 
       {/* Stats rapides */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {(["recu", "en_examen", "traite", "classe"] as const).map(s => (
           <div key={s} className="bg-white rounded-xl border border-gray-100 p-4">
             <p className="text-2xl font-bold text-gray-900">{signalements.filter(sg => sg.statut === s).length}</p>
@@ -84,6 +113,7 @@ export function SignalementsClient() {
             <p>Aucun signalement</p>
           </div>
         ) : (
+          <>
           <table className="w-full">
             <thead><tr className="text-xs text-gray-400 uppercase border-b border-gray-50">
               <th className="px-6 py-3 text-left">Date</th>
@@ -94,7 +124,7 @@ export function SignalementsClient() {
               <th className="px-6 py-3 text-left">Actions</th>
             </tr></thead>
             <tbody>
-              {filtered.map(sg => (
+              {paginated.map(sg => (
                 <tr key={sg.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 text-sm text-gray-500">{new Date(sg.created_at).toLocaleDateString("fr-FR")}</td>
                   <td className="px-6 py-4 text-sm text-gray-700">{TYPE_CONFIG[sg.type_infraction]}</td>
@@ -126,6 +156,19 @@ export function SignalementsClient() {
               ))}
             </tbody>
           </table>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
+              <p className="text-sm text-gray-500">{filtered.length} résultats</p>
+              <div className="flex gap-2">
+                <button disabled={page === 0} onClick={() => setPage(p => p - 1)}
+                  className="px-3 py-1.5 text-sm border rounded-lg disabled:opacity-40 hover:bg-gray-50">Précédent</button>
+                <span className="px-3 py-1.5 text-sm text-gray-600">{page + 1}/{totalPages}</span>
+                <button disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}
+                  className="px-3 py-1.5 text-sm border rounded-lg disabled:opacity-40 hover:bg-gray-50">Suivant</button>
+              </div>
+            </div>
+          )}
+          </>
         )}
       </div>
 
@@ -142,7 +185,7 @@ export function SignalementsClient() {
               </div>
             </div>
             <div className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 <div><p className="text-gray-400 text-xs uppercase mb-1">Type</p><p className="font-medium">{TYPE_CONFIG[selected.type_infraction]}</p></div>
                 <div><p className="text-gray-400 text-xs uppercase mb-1">Date</p><p className="font-medium">{new Date(selected.created_at).toLocaleDateString("fr-FR")}</p></div>
                 <div><p className="text-gray-400 text-xs uppercase mb-1">Signalant</p><p className="font-medium">{selected.nom_signalant ?? "Anonyme"}</p></div>

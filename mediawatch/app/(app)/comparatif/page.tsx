@@ -3,20 +3,28 @@
 import { useEffect, useRef, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer, Tooltip, Legend } from "recharts"
+import { AlertCircle } from "lucide-react"
+import { PageSkeleton } from "@/components/PageSkeleton"
 
 interface Parole { acteur: string; duree_secondes: number; media_nom: string | null }
 
 export default function ComparatifPage() {
   const supabaseRef = useRef(createClient())
   const [data, setData] = useState<Parole[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     supabaseRef.current.from("temps_parole")
       .select("acteur,duree_secondes,medias:media_id(nom)")
-      .then(r => setData((r.data ?? []).map((x: Record<string, unknown>) => ({
+      .then(r => {
+        if (r.error) { setError(r.error.message); setLoading(false); return }
+        setData((r.data ?? []).map((x: Record<string, unknown>) => ({
         acteur: x.acteur as string, duree_secondes: x.duree_secondes as number,
         media_nom: (x.medias as { nom: string } | null)?.nom ?? null
-      }))))
+      })))
+        setLoading(false)
+      })
   }, [])
 
   const medias = Array.from(new Set(data.map(d => d.media_nom).filter(Boolean))) as string[]
@@ -34,8 +42,16 @@ export default function ComparatifPage() {
 
   const COLORS = ["#1A3A6B","#C9A84C","#166534","#dc2626","#7c3aed","#0891b2"]
 
+  if (loading) return <PageSkeleton rows={3} />
+
   return (
-    <div className="p-8 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
+      {error && (
+        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3">
+          <AlertCircle className="size-5 text-red-400 shrink-0" />
+          <p className="text-sm text-red-400">{error}</p>
+        </div>
+      )}
       <div>
         <h1 className="text-2xl font-black text-gray-900">Analyse comparative</h1>
         <p className="text-gray-500 text-sm mt-1">Comparaison du temps de parole accordé aux acteurs politiques par média</p>

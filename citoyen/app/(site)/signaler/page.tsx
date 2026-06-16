@@ -3,11 +3,13 @@
 import { useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { CheckCircle, AlertCircle, Upload, Shield } from "lucide-react"
+import { useToast, ToastContainer } from "@/components/Toast"
 
 const ETAPES = ["Type", "Description", "Preuves", "Contact", "Envoi"]
 
 export default function SignalerPage() {
   const supabase = createClient()
+  const { toasts, show: showToast, remove: removeToast } = useToast()
   const [etape, setEtape] = useState(0)
   const [done, setDone] = useState(false)
   const [sending, setSending] = useState(false)
@@ -24,7 +26,7 @@ export default function SignalerPage() {
 
   async function submit() {
     setSending(true)
-    await supabase.from("signalements").insert({
+    const { error } = await supabase.from("signalements").insert({
       type_infraction: type || "autre",
       description: `[Média: ${media || "Non précisé"}] [Date: ${dateObs || "Non précisée"}]\n\n${desc}`,
       nom_signalant: anonymous ? null : nom || null,
@@ -32,7 +34,12 @@ export default function SignalerPage() {
       telephone: anonymous ? null : tel || null,
     })
     setSending(false)
-    setDone(true)
+    if (error) {
+      showToast("Une erreur est survenue lors de l'envoi. Veuillez réessayer.", "error")
+    } else {
+      showToast("Signalement transmis au CNRA avec succès.", "success")
+      setDone(true)
+    }
   }
 
   if (done) {
@@ -58,7 +65,8 @@ export default function SignalerPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-12">
+    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-12">
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
       {/* Header */}
       <div className="text-center mb-10">
         <div className="w-14 h-14 bg-[#1A3A6B] rounded-2xl flex items-center justify-center mx-auto mb-4">

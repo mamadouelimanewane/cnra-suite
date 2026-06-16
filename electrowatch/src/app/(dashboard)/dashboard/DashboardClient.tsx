@@ -50,7 +50,7 @@ export function DashboardClient() {
   }
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
 
       {/* Bannière campagne active */}
       {campagne ? (
@@ -89,7 +89,7 @@ export function DashboardClient() {
       )}
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           titre="Interventions saisies"
           valeur={totalInterventions.toLocaleString("fr-SN")}

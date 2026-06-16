@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { formatNumber } from "@/lib/utils"
-import { Zap, AlertOctagon, Clock, CheckCircle, XCircle, Activity } from "lucide-react"
+import { Zap, AlertOctagon, Clock, CheckCircle, XCircle, Activity, AlertCircle, X } from "lucide-react"
+import { PageSkeleton } from "@/components/PageSkeleton"
+import { EmptyState } from "@/components/EmptyState"
 
 type Contenu = {
   id: string
@@ -48,6 +50,7 @@ export default function DetectionPage() {
   const [contenus, setContenus] = useState<Contenu[]>([])
   const [filter, setFilter] = useState<string>("tous")
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const supabase = supabaseRef.current
@@ -56,7 +59,8 @@ export default function DetectionPage() {
         .from("contenus_analyses")
         .select("id,titre,type_contenu,plateforme,date_soumission,statut_analyse,score_deepfake,score_manipulation,verdict")
         .order("date_soumission", { ascending: false })
-      setContenus(data || [])
+      if (!data) { setLoading(false); return }
+      setContenus(data)
       setLoading(false)
     }
     load()
@@ -72,9 +76,18 @@ export default function DetectionPage() {
     { key: "en_attente", label: "En attente", count: contenus.filter(c => c.statut_analyse === "en_attente").length },
   ]
 
+  if (loading) return <PageSkeleton rows={5} />
+
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-4 sm:p-6 space-y-6">
+      {error && (
+        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3">
+          <AlertCircle className="size-5 text-red-400 shrink-0" />
+          <p className="text-sm text-red-400">{error}</p>
+          <button onClick={() => setError(null)} className="ml-auto text-red-400 hover:text-red-300"><X className="size-4" /></button>
+        </div>
+      )}
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-black text-white flex items-center gap-3">
             <Zap className="size-6 text-purple-400" /> Détection live
@@ -97,13 +110,8 @@ export default function DetectionPage() {
         ))}
       </div>
 
-      {loading ? (
-        <div className="space-y-3">
-          {Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-24 rounded-2xl bg-white/5 animate-pulse" />)}
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {filtered.map(c => (
+      <div className="space-y-3">
+        {filtered.map(c => (
             <div key={c.id} className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-purple-500/30 transition-all">
               <div className="flex items-start gap-4">
                 <div className="flex-1 min-w-0">
@@ -150,13 +158,9 @@ export default function DetectionPage() {
             </div>
           ))}
           {filtered.length === 0 && (
-            <div className="text-center py-12 text-gray-500">
-              <AlertOctagon className="size-10 mx-auto mb-3 opacity-30" />
-              <p>Aucun contenu dans cette catégorie</p>
-            </div>
+            <EmptyState icon={AlertOctagon} title="Aucun contenu" description="Aucun contenu dans cette catégorie pour le moment." />
           )}
         </div>
-      )}
     </div>
   )
 }

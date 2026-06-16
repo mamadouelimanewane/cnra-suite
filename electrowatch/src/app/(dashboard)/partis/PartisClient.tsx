@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { Plus, Pencil, Users } from "lucide-react"
+import { Plus, Pencil, Search, AlertCircle } from "lucide-react"
 import type { Parti } from "@/types"
 
 const COULEURS_PRESET = [
@@ -17,10 +17,15 @@ export function PartisClient() {
   const [editing, setEditing] = useState<Parti | null>(null)
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({ nom: "", sigle: "", couleur: "#1A3A6B" })
+  const [search, setSearch] = useState("")
+  const [error, setError] = useState<string | null>(null)
+  const [page, setPage] = useState(0)
+  const PAGE_SIZE = 20
 
   const charger = useCallback(async () => {
     const supabase = createClient()
-    const { data } = await supabase.from("partis").select("*").order("nom")
+    const { data, error: err } = await supabase.from("partis").select("*").order("nom")
+    if (err) setError("Impossible de charger les partis")
     setPartis(data ?? [])
     setLoading(false)
   }, [])
@@ -58,9 +63,25 @@ export function PartisClient() {
     charger()
   }
 
+  const filtered = search
+    ? partis.filter(p =>
+        p.nom.toLowerCase().includes(search.toLowerCase()) ||
+        p.sigle.toLowerCase().includes(search.toLowerCase())
+      )
+    : partis
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
+  const paginated = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3">
+          <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />
+          <p className="text-sm text-red-700">{error}</p>
+        </div>
+      )}
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-bold text-gray-900">Partis politiques</h2>
           <p className="text-sm text-gray-500 mt-0.5">{partis.filter(p => p.actif).length} actif{partis.filter(p => p.actif).length > 1 ? "s" : ""}</p>
@@ -120,13 +141,21 @@ export function PartisClient() {
         </div>
       )}
 
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <input value={search} onChange={e => { setSearch(e.target.value); setPage(0) }}
+          placeholder="Rechercher..."
+          className="pl-9 pr-4 py-2 text-sm bg-white border border-gray-200 rounded-lg w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-[#1A3A6B]/20" />
+      </div>
+
       {loading ? (
         <div className="flex justify-center py-16">
           <div className="w-7 h-7 border-2 border-[#1A3A6B] border-t-transparent rounded-full animate-spin" />
         </div>
       ) : (
+        <>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {partis.map((p) => (
+          {paginated.map((p) => (
             <div key={p.id} className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
                 style={{ backgroundColor: `${p.couleur}20`, border: `2px solid ${p.couleur}40` }}>
@@ -155,6 +184,19 @@ export function PartisClient() {
             </div>
           ))}
         </div>
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+            <p className="text-sm text-gray-500">{filtered.length} résultats</p>
+            <div className="flex gap-2">
+              <button disabled={page === 0} onClick={() => setPage(p => p - 1)}
+                className="px-3 py-1.5 text-sm border rounded-lg disabled:opacity-40 hover:bg-gray-50">Précédent</button>
+              <span className="px-3 py-1.5 text-sm text-gray-600">{page + 1}/{totalPages}</span>
+              <button disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}
+                className="px-3 py-1.5 text-sm border rounded-lg disabled:opacity-40 hover:bg-gray-50">Suivant</button>
+            </div>
+          </div>
+        )}
+        </>
       )}
     </div>
   )

@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { formatDuree } from "@/lib/utils"
-import { FileText, Download, Globe, Eye, Plus } from "lucide-react"
+import { FileText, Download, Globe, Plus, AlertCircle, Table } from "lucide-react"
 import type { Rapport, Campagne, StatParti } from "@/types"
 
 export function RapportsClient() {
@@ -12,16 +12,18 @@ export function RapportsClient() {
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
   const [showForm, setShowForm] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [form, setForm] = useState({
     campagne_id: "", titre: "", periode_debut: "", periode_fin: "",
   })
 
   const charger = useCallback(async () => {
     const supabase = createClient()
-    const [{ data: rpts }, { data: camps }] = await Promise.all([
+    const [{ data: rpts, error: rptsErr }, { data: camps }] = await Promise.all([
       supabase.from("rapports").select("*, campagne:campagnes(id,nom)").order("genere_at", { ascending: false }),
       supabase.from("campagnes").select("*").order("date_debut", { ascending: false }),
     ])
+    if (rptsErr) setError("Impossible de charger les rapports")
     setRapports((rpts as Rapport[]) ?? [])
     setCampagnes(camps ?? [])
     setLoading(false)
@@ -75,6 +77,29 @@ export function RapportsClient() {
     setShowForm(false)
     setGenerating(false)
     charger()
+  }
+
+  function exportCSV(data: Record<string, unknown>[], filename: string) {
+    if (!data.length) return
+    const keys = Object.keys(data[0])
+    const csv = [keys.join(","), ...data.map(row => keys.map(k => JSON.stringify(row[k] ?? "")).join(","))].join("\n")
+    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a"); a.href = url; a.download = filename; a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  function exportRapportsCSV() {
+    exportCSV(rapports.map(r => ({
+      titre: r.titre,
+      campagne: r.campagne?.nom ?? "",
+      periode_debut: r.periode_debut,
+      periode_fin: r.periode_fin,
+      total_interventions: r.contenu_json.total_interventions,
+      total_duree_secondes: r.contenu_json.total_duree_secondes,
+      publie: r.publie ? "Oui" : "Non",
+      genere_at: r.genere_at,
+    })), "cnra_rapports.csv")
   }
 
   async function togglePublier(id: string, publie: boolean) {
@@ -158,15 +183,30 @@ export function RapportsClient() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3">
+          <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />
+          <p className="text-sm text-red-700">{error}</p>
+        </div>
+      )}
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-bold text-gray-900">Rapports officiels</h2>
           <p className="text-sm text-gray-500 mt-0.5">Avis hebdomadaires et bilans de campagne</p>
         </div>
-        <button onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-2 px-4 py-2 bg-[#1A3A6B] text-white text-sm font-semibold rounded-lg hover:bg-[#1e4080] transition-colors">
-          <Plus className="w-4 h-4" /> Générer un rapport
-        </button>
+        <div className="flex gap-2 flex-wrap">
+          {rapports.length > 0 && (
+            <button onClick={exportRapportsCSV}
+              className="flex items-center gap-2 px-4 py-2 border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors">
+              <Table className="w-4 h-4" /> Exporter CSV
+            </button>
+          )}
+          <button onClick={() => setShowForm(!showForm)}
+            className="flex items-center gap-2 px-4 py-2 bg-[#1A3A6B] text-white text-sm font-semibold rounded-lg hover:bg-[#1e4080] transition-colors">
+            <Plus className="w-4 h-4" /> Générer un rapport
+          </button>
+        </div>
       </div>
 
       {showForm && (

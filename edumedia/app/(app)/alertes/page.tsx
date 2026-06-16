@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { AlertOctagon, CheckCircle, Clock, Loader2 } from "lucide-react"
+import { AlertOctagon, CheckCircle, Clock, Loader2, AlertCircle, X, Search } from "lucide-react"
+import { PageSkeleton } from "@/components/PageSkeleton"
+import { EmptyState } from "@/components/EmptyState"
 
 type Alerte = {
   id: string
@@ -32,19 +34,26 @@ export default function AlertesPage() {
   const supabaseRef = useRef(createClient())
   const [alertes, setAlertes] = useState<Alerte[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState("tous")
+  const [search, setSearch] = useState("")
 
   useEffect(() => {
     const supabase = supabaseRef.current
     async function load() {
-      const { data } = await supabase.from("alertes_antideep").select("*").order("date_alerte", { ascending: false })
+      const { data, error: err } = await supabase.from("alertes_antideep").select("*").order("date_alerte", { ascending: false })
+      if (err) { setError(err.message); setLoading(false); return }
       setAlertes(data || [])
       setLoading(false)
     }
     load()
   }, [])
 
-  const filtered = filter === "tous" ? alertes : alertes.filter(a => a.statut === filter || a.severite === filter)
+  const filtered = alertes.filter(a => {
+    const matchFilter = filter === "tous" || a.statut === filter || a.severite === filter
+    const matchSearch = !search || a.titre.toLowerCase().includes(search.toLowerCase())
+    return matchFilter && matchSearch
+  })
 
   const tabs = [
     { key: "tous", label: "Toutes", count: alertes.length },
@@ -54,13 +63,28 @@ export default function AlertesPage() {
     { key: "resolue", label: "Résolues", count: alertes.filter(a => a.statut === "resolue").length },
   ]
 
+  if (loading) return <PageSkeleton rows={4} />
+
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
+      {error && (
+        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3">
+          <AlertCircle className="size-5 text-red-400 shrink-0" />
+          <p className="text-sm text-red-400">{error}</p>
+          <button onClick={() => setError(null)} className="ml-auto text-red-400 hover:text-red-300"><X className="size-4" /></button>
+        </div>
+      )}
       <div>
         <h1 className="text-2xl font-black text-white flex items-center gap-3">
           <AlertOctagon className="size-6 text-purple-400" /> Alertes & Signalements
         </h1>
         <p className="text-sm text-gray-400 mt-1">{alertes.length} alertes enregistrées</p>
+      </div>
+
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-500" />
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher une alerte..."
+          className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500/50" />
       </div>
 
       <div className="flex gap-2 flex-wrap">
@@ -74,9 +98,7 @@ export default function AlertesPage() {
       </div>
 
       <div className="space-y-3">
-        {loading ? (
-          Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-24 rounded-2xl bg-white/5 animate-pulse" />)
-        ) : filtered.map(a => {
+        {filtered.map(a => {
           const sev = SEVERITE[a.severite] || SEVERITE.moyenne
           return (
             <div key={a.id} className={`border rounded-2xl p-5 ${sev.card}`}>
@@ -107,11 +129,8 @@ export default function AlertesPage() {
             </div>
           )
         })}
-        {!loading && filtered.length === 0 && (
-          <div className="text-center py-10 text-gray-500">
-            <AlertOctagon className="size-10 mx-auto mb-3 opacity-30" />
-            <p>Aucune alerte dans cette catégorie</p>
-          </div>
+        {filtered.length === 0 && (
+          <EmptyState icon={AlertOctagon} title="Aucune alerte" description="Aucune alerte dans cette catégorie pour le moment." />
         )}
       </div>
     </div>

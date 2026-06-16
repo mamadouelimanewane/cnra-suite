@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { AlertTriangle, Clock, Eye, FileText, TrendingUp, Zap } from "lucide-react"
+import { AlertTriangle, Clock, Eye, FileText, TrendingUp, Zap, AlertCircle } from "lucide-react"
+import { PageSkeleton } from "@/components/PageSkeleton"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
 import { formatDuration } from "@/lib/utils"
 
@@ -19,6 +20,8 @@ export default function DashboardPage() {
   const [themes, setThemes] = useState<ObsTheme[]>([])
   const [nbSessions, setNbSessions] = useState(0)
   const [nbRapports, setNbRapports] = useState(0)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const sb = supabaseRef.current
@@ -29,6 +32,7 @@ export default function DashboardPage() {
       sb.from("monitoring_sessions").select("id", { count: "exact", head: true }),
       sb.from("rapports_veille").select("id", { count: "exact", head: true }),
     ]).then(([a, p, o, s, r]) => {
+      if (a.error) { setError(a.error.message); setLoading(false); return }
       setAlertes((a.data ?? []).map((x: Record<string, unknown>) => ({
         ...x, media_nom: (x.medias as { nom: string } | null)?.nom ?? null
       })) as Alerte[])
@@ -48,16 +52,25 @@ export default function DashboardPage() {
 
       setNbSessions(s.count ?? 0)
       setNbRapports(r.count ?? 0)
+      setLoading(false)
     })
   }, [])
+
+  if (loading) return <PageSkeleton rows={4} />
 
   const alertesActives = alertes.filter(a => a.statut === "nouvelle" || a.statut === "en_cours")
   const alertesCritiques = alertes.filter(a => a.severite === "critique" || a.severite === "elevee")
   const PIE_COLORS = ["#1A3A6B", "#C9A84C", "#166534", "#7c3aed", "#0891b2"]
 
   return (
-    <div className="p-8 space-y-8">
-      <div className="flex items-center justify-between">
+    <div className="p-4 sm:p-6 space-y-6">
+      {error && (
+        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3">
+          <AlertCircle className="size-5 text-red-400 shrink-0" />
+          <p className="text-sm text-red-400">{error}</p>
+        </div>
+      )}
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-black text-gray-900">Tableau de bord</h1>
           <p className="text-gray-500 text-sm mt-1">Veille et monitoring des contenus audiovisuels sénégalais</p>
@@ -69,7 +82,7 @@ export default function DashboardPage() {
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: "Alertes actives", value: alertesActives.length, icon: AlertTriangle, color: "bg-red-50 text-red-700", sub: `dont ${alertesCritiques.length} élevées/critiques` },
           { label: "Sessions monitoring", value: nbSessions, icon: Eye, color: "bg-blue-50 text-[#1A3A6B]", sub: "séances de surveillance" },
@@ -116,7 +129,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {/* Top temps de parole */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
           <h3 className="font-bold text-gray-900 mb-5 flex items-center gap-2">

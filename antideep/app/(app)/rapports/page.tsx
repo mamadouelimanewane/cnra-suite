@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { BookOpen, Shield, Radio, Globe, Database, AlertOctagon, TrendingUp, FileText } from "lucide-react"
+import { BookOpen, Shield, Radio, Globe, Database, AlertOctagon, TrendingUp, FileText, AlertCircle, X, Download } from "lucide-react"
+import { PageSkeleton } from "@/components/PageSkeleton"
 
 type SummaryStats = {
   totalContenus: number
@@ -23,6 +24,7 @@ export default function RapportsPage() {
   const supabaseRef = useRef(createClient())
   const [stats, setStats] = useState<SummaryStats | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const today = new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
 
   useEffect(() => {
@@ -37,6 +39,7 @@ export default function RapportsPage() {
         supabase.from("campagnes_desinfo").select("nb_partages_est"),
       ])
 
+      if (contenusRes.error) { setError(contenusRes.error.message); setLoading(false); return }
       const contenus = contenusRes.data || []
       const campagnes = campagnesRes.data || []
       const alertes = alertesRes.data || []
@@ -111,19 +114,46 @@ export default function RapportsPage() {
     red: "text-red-400 border-red-500/20 bg-red-500/5",
   }
 
+  function exportCSV(data: Record<string, unknown>[], filename: string) {
+    if (!data.length) return
+    const keys = Object.keys(data[0])
+    const csv = [keys.join(","), ...data.map(row => keys.map(k => JSON.stringify(row[k] ?? "")).join(","))].join("\n")
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a"); a.href = url; a.download = filename; a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const csvData = stats ? sections.flatMap(s => s.rows.map(r => ({ section: s.title, indicateur: r.label, valeur: r.value }))) : []
+
+  if (loading) return <PageSkeleton rows={4} />
+
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-4 sm:p-6 space-y-6">
+      {error && (
+        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3">
+          <AlertCircle className="size-5 text-red-400 shrink-0" />
+          <p className="text-sm text-red-400">{error}</p>
+          <button onClick={() => setError(null)} className="ml-auto text-red-400 hover:text-red-300"><X className="size-4" /></button>
+        </div>
+      )}
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-black text-white flex items-center gap-3">
             <BookOpen className="size-6 text-purple-400" /> Rapport de synthèse
           </h1>
           <p className="text-sm text-gray-400 mt-1">État de la détection — généré le {today}</p>
         </div>
-        <button onClick={() => window.print()}
-          className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-sm font-bold rounded-xl transition-all">
-          <FileText className="size-4" /> Exporter PDF
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => exportCSV(csvData as unknown as Record<string, unknown>[], "rapport.csv")}
+            className="flex items-center gap-2 px-3 py-2 bg-white/10 hover:bg-white/20 text-white text-sm rounded-lg transition-colors">
+            <Download className="size-4" /> Exporter CSV
+          </button>
+          <button onClick={() => window.print()}
+            className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-sm font-bold rounded-xl transition-all">
+            <FileText className="size-4" /> Exporter PDF
+          </button>
+        </div>
       </div>
 
       <div className="bg-purple-500/10 border border-purple-500/20 rounded-2xl p-5">
@@ -138,11 +168,7 @@ export default function RapportsPage() {
         </p>
       </div>
 
-      {loading ? (
-        <div className="space-y-4">
-          {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-40 rounded-2xl bg-white/5 animate-pulse" />)}
-        </div>
-      ) : (
+      {(
         <div className="space-y-4">
           {sections.map(section => (
             <div key={section.title} className={`border rounded-2xl overflow-hidden ${colorMap[section.color]}`}>
@@ -174,3 +200,4 @@ export default function RapportsPage() {
     </div>
   )
 }
+

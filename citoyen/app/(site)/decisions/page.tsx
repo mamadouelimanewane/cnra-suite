@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { FileText, Search, Download, Filter } from "lucide-react"
+import { FileText, Search, Download, Filter, ChevronLeft, ChevronRight, AlertCircle } from "lucide-react"
+
+const PAGE_SIZE = 10
 
 const DECISIONS_DEMO = [
   { id: "1", numero: "CNRA-DEC-2024-089", type: "Sanction", media: "2STV", motif: "Déséquilibre grave du temps de parole en faveur de PASTEF — Écart de 58%", date: "2024-11-02", montant: "5 000 000 FCFA", statut: "Exécutée" },
@@ -23,15 +25,25 @@ const TYPE_COLOR: Record<string, string> = {
 export default function DecisionsPage() {
   const [search, setSearch] = useState("")
   const [typeFiltre, setTypeFiltre] = useState("tous")
+  const [page, setPage] = useState(0)
+  const [error] = useState<string | null>(null)
 
   const filtered = DECISIONS_DEMO.filter(d => {
     const matchSearch = !search || d.numero.toLowerCase().includes(search.toLowerCase()) || d.media.toLowerCase().includes(search.toLowerCase()) || d.motif.toLowerCase().includes(search.toLowerCase())
     const matchType = typeFiltre === "tous" || d.type === typeFiltre
     return matchSearch && matchType
   })
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
+  const paginated = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3">
+          <AlertCircle className="size-5 text-red-500 shrink-0" />
+          <p className="text-sm text-red-700">{error}</p>
+        </div>
+      )}
       {/* Header */}
       <div>
         <h1 className="text-3xl font-black text-[#1A3A6B] mb-2">Décisions & Sanctions CNRA</h1>
@@ -39,7 +51,7 @@ export default function DecisionsPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: "Total décisions", value: DECISIONS_DEMO.length, color: "bg-blue-50 text-[#1A3A6B]" },
           { label: "Sanctions financières", value: DECISIONS_DEMO.filter(d => d.montant).length, color: "bg-red-50 text-red-700" },
@@ -85,7 +97,7 @@ export default function DecisionsPage() {
           <tbody>
             {filtered.length === 0 ? (
               <tr><td colSpan={7} className="px-6 py-12 text-center text-gray-400">Aucune décision trouvée</td></tr>
-            ) : filtered.map(d => (
+            ) : paginated.map(d => (
               <tr key={d.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
                 <td className="px-6 py-4 font-mono text-xs text-gray-600">{d.numero}</td>
                 <td className="px-6 py-4">
@@ -113,6 +125,39 @@ export default function DecisionsPage() {
         <div className="px-6 py-3 bg-gray-50 border-t border-gray-100">
           <p className="text-xs text-gray-400">{filtered.length} décision(s) affichée(s) · Source officielle CNRA</p>
         </div>
+      </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-gray-500">Page {page + 1}/{totalPages}</p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setPage(p => Math.max(0, p - 1))}
+              disabled={page === 0}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#1A3A6B] text-white text-sm font-medium disabled:opacity-40 hover:bg-[#0f2347] transition-colors"
+            >
+              <ChevronLeft className="size-4" /> Précédent
+            </button>
+            <button
+              onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+              disabled={page >= totalPages - 1}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#1A3A6B] text-white text-sm font-medium disabled:opacity-40 hover:bg-[#0f2347] transition-colors"
+            >
+              Suivant <ChevronRight className="size-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* CTA */}
+      <div className="flex justify-center pt-2">
+        <a
+          href="#"
+          className="flex items-center gap-2 px-6 py-3 bg-[#1A3A6B] text-white font-bold rounded-xl text-sm hover:bg-[#0f2347] transition-colors"
+        >
+          <Download className="size-4" /> Télécharger tous les rapports CNRA
+        </a>
       </div>
     </div>
   )

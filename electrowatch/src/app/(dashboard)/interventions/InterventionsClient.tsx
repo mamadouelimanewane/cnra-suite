@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { formatDuree, calculerDureeEntre } from "@/lib/utils"
-import { Plus, Trash2, Search, Filter, Mic2 } from "lucide-react"
+import { Plus, Trash2, Search, Filter, Mic2, AlertCircle } from "lucide-react"
 import type { Intervention, Campagne, Parti, Media } from "@/types"
 
 export function InterventionsClient() {
@@ -16,6 +16,10 @@ export function InterventionsClient() {
   const [saving, setSaving] = useState(false)
   const [filtreMedia, setFiltreMedia] = useState("")
   const [filtreParti, setFiltreParti] = useState("")
+  const [search, setSearch] = useState("")
+  const [error, setError] = useState<string | null>(null)
+  const [page, setPage] = useState(0)
+  const PAGE_SIZE = 20
 
   // Formulaire
   const [form, setForm] = useState({
@@ -26,7 +30,7 @@ export function InterventionsClient() {
 
   const charger = useCallback(async () => {
     const supabase = createClient()
-    const [{ data: ivs }, { data: camps }, { data: pts }, { data: meds }] = await Promise.all([
+    const [{ data: ivs, error: ivsErr }, { data: camps }, { data: pts }, { data: meds }] = await Promise.all([
       supabase.from("interventions")
         .select("*, parti:partis(*), media:medias(*), campagne:campagnes(id,nom)")
         .order("date_intervention", { ascending: false })
@@ -36,6 +40,7 @@ export function InterventionsClient() {
       supabase.from("partis").select("*").eq("actif", true).order("nom"),
       supabase.from("medias").select("*").eq("statut", "actif").order("nom"),
     ])
+    if (ivsErr) setError("Impossible de charger les interventions")
     setInterventions((ivs as Intervention[]) ?? [])
     setCampagnes(camps ?? [])
     setPartis(pts ?? [])
@@ -108,13 +113,25 @@ export function InterventionsClient() {
 
   const filtered = interventions.filter((i) =>
     (!filtreMedia || i.media_id === filtreMedia) &&
-    (!filtreParti || i.parti_id === filtreParti)
+    (!filtreParti || i.parti_id === filtreParti) &&
+    (!search || (i.programme ?? "").toLowerCase().includes(search.toLowerCase()) ||
+      (i.parti?.nom ?? "").toLowerCase().includes(search.toLowerCase()) ||
+      (i.media?.nom ?? "").toLowerCase().includes(search.toLowerCase()))
   )
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
+  const paginated = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3">
+          <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />
+          <p className="text-sm text-red-700">{error}</p>
+        </div>
+      )}
+
       {/* En-tête */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-bold text-gray-900">Saisie des interventions</h2>
           <p className="text-sm text-gray-500 mt-0.5">{filtered.length} intervention{filtered.length > 1 ? "s" : ""} enregistrée{filtered.length > 1 ? "s" : ""}</p>
@@ -217,6 +234,12 @@ export function InterventionsClient() {
       {/* Filtres */}
       <div className="flex gap-3 flex-wrap">
         <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input value={search} onChange={e => { setSearch(e.target.value); setPage(0) }}
+            placeholder="Rechercher..."
+            className="pl-9 pr-4 py-2 text-sm bg-white border border-gray-200 rounded-lg w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-[#1A3A6B]/20" />
+        </div>
+        <div className="relative">
           <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <select value={filtreParti} onChange={(e) => setFiltreParti(e.target.value)}
             className="pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#1A3A6B]">
@@ -250,7 +273,7 @@ export function InterventionsClient() {
                 <tr><td colSpan={6} className="py-12 text-center text-gray-400 text-sm">Chargement…</td></tr>
               ) : filtered.length === 0 ? (
                 <tr><td colSpan={6} className="py-12 text-center text-gray-400 text-sm">Aucune intervention enregistrée</td></tr>
-              ) : filtered.map((iv) => (
+              ) : paginated.map((iv) => (
                 <tr key={iv.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
                     <div>{new Date(iv.date_intervention).toLocaleDateString("fr-SN")}</div>
@@ -290,6 +313,18 @@ export function InterventionsClient() {
             </tbody>
           </table>
         </div>
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-4 py-4 border-t border-gray-100">
+            <p className="text-sm text-gray-500">{filtered.length} résultats</p>
+            <div className="flex gap-2">
+              <button disabled={page === 0} onClick={() => setPage(p => p - 1)}
+                className="px-3 py-1.5 text-sm border rounded-lg disabled:opacity-40 hover:bg-gray-50">Précédent</button>
+              <span className="px-3 py-1.5 text-sm text-gray-600">{page + 1}/{totalPages}</span>
+              <button disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}
+                className="px-3 py-1.5 text-sm border rounded-lg disabled:opacity-40 hover:bg-gray-50">Suivant</button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

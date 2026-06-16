@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { formatNumber, getRiskColor, getRiskLabel } from "@/lib/utils"
-import { Shield, AlertOctagon, FileSearch, Radio, Globe, Database, TrendingUp, Zap } from "lucide-react"
+import { Shield, AlertOctagon, FileSearch, Radio, Globe, Database, TrendingUp, Zap, AlertCircle, X } from "lucide-react"
+import { PageSkeleton } from "@/components/PageSkeleton"
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
 
 type Stats = {
@@ -37,6 +38,7 @@ export default function DashboardPage() {
   const supabaseRef = useRef(createClient())
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [recentAlertes, setRecentAlertes] = useState<{ titre: string; severite: string; statut: string }[]>([])
 
   useEffect(() => {
@@ -50,6 +52,8 @@ export default function DashboardPage() {
         supabase.from("signatures_deepfake").select("id", { count: "exact", head: true }),
       ])
 
+      if (contenusRes.error) { setError(contenusRes.error.message); setLoading(false); return }
+      if (alertesRes.error) { setError(alertesRes.error.message); setLoading(false); return }
       const contenus = contenusRes.data || []
       const campagnes = campagnesRes.data || []
       const alertes = alertesRes.data || []
@@ -104,9 +108,18 @@ export default function DashboardPage() {
     faible: "text-green-400 bg-green-500/10 border border-green-500/20",
   }
 
+  if (loading) return <PageSkeleton />
+
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-4 sm:p-6 space-y-6">
+      {error && (
+        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3">
+          <AlertCircle className="size-5 text-red-400 shrink-0" />
+          <p className="text-sm text-red-400">{error}</p>
+          <button onClick={() => setError(null)} className="ml-auto text-red-400 hover:text-red-300"><X className="size-4" /></button>
+        </div>
+      )}
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-black text-white">Tableau de bord</h1>
           <p className="text-sm text-gray-400 mt-1">Vue globale de la détection de contenus falsifiés et campagnes de désinformation</p>
@@ -117,15 +130,9 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {loading ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-28 rounded-2xl bg-white/5 animate-pulse" />
-          ))}
-        </div>
-      ) : (
+      {(
         <>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {statCards.map(card => (
               <div key={card.label} className="bg-white/5 border border-white/10 rounded-2xl p-5">
                 <div className={`w-10 h-10 rounded-xl border flex items-center justify-center mb-3 ${colorMap[card.color]}`}>
@@ -200,3 +207,4 @@ export default function DashboardPage() {
     </div>
   )
 }
+

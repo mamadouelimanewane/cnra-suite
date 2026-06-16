@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { Clock, Users } from "lucide-react"
+import { Clock, Users, AlertCircle } from "lucide-react"
+import { PageSkeleton } from "@/components/PageSkeleton"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis } from "recharts"
 
 interface Parole {
@@ -18,6 +19,8 @@ export default function TempsPaolePage() {
   const [data, setData] = useState<Parole[]>([])
   const [filterType, setFilterType] = useState("tous")
   const [filterMedia, setFilterMedia] = useState("tous")
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const sb = supabaseRef.current
@@ -25,9 +28,11 @@ export default function TempsPaolePage() {
       .select("id,acteur,type_acteur,parti,duree_secondes,date_mesure,contexte,favorable,medias:media_id(nom)")
       .order("date_mesure", { ascending: false })
       .then(r => {
+        if (r.error) { setError(r.error.message); setLoading(false); return }
         setData((r.data ?? []).map((x: Record<string, unknown>) => ({
           ...x, media_nom: (x.medias as { nom: string } | null)?.nom ?? null
         })) as Parole[])
+        setLoading(false)
       })
   }, [])
 
@@ -66,15 +71,23 @@ export default function TempsPaolePage() {
   const COLORS = ["#1A3A6B", "#C9A84C", "#166534", "#dc2626", "#7c3aed", "#0891b2"]
   const totalMinutes = byActeur.reduce((s, a) => s + a.minutes, 0)
 
+  if (loading) return <PageSkeleton rows={3} />
+
   return (
-    <div className="p-8 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
+      {error && (
+        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3">
+          <AlertCircle className="size-5 text-red-400 shrink-0" />
+          <p className="text-sm text-red-400">{error}</p>
+        </div>
+      )}
       <div>
         <h1 className="text-2xl font-black text-gray-900">Temps de parole</h1>
         <p className="text-gray-500 text-sm mt-1">Analyse du temps d&apos;antenne accordé aux acteurs politiques et institutionnels</p>
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {[
           { label: "Total mesuré", value: `${totalMinutes} min`, sub: `${data.length} interventions` },
           { label: "Acteurs distincts", value: byActeur.length, sub: "personnalités suivies" },
@@ -99,7 +112,7 @@ export default function TempsPaolePage() {
         <div className="ml-auto text-sm text-gray-400 flex items-center">{filtered.length} interventions</div>
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {/* Top acteurs */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
           <h3 className="font-bold text-gray-900 mb-5">Classement temps de parole (min)</h3>

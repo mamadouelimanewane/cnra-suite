@@ -1,14 +1,15 @@
 "use client"
 
-import { Bell, Search } from "lucide-react"
+import { Bell, Menu, Search } from "lucide-react"
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 
 interface HeaderProps {
   titre?: string
+  onMenuOpen?: () => void
 }
 
-export function Header({ titre }: HeaderProps) {
+export function Header({ titre, onMenuOpen }: HeaderProps) {
   const [alertesCount, setAlertesCount] = useState(0)
   const [dateHeure, setDateHeure] = useState(new Date())
 
@@ -29,7 +30,13 @@ export function Header({ titre }: HeaderProps) {
   })
 
   return (
-    <header className="h-14 bg-white border-b border-gray-200 flex items-center px-6 gap-4 shrink-0">
+    <header className="h-14 bg-white border-b border-gray-200 flex items-center px-4 gap-3 shrink-0">
+      {/* Hamburger mobile */}
+      {onMenuOpen && (
+        <button onClick={onMenuOpen} className="lg:hidden p-2 rounded-lg hover:bg-gray-50 text-gray-500 transition-colors">
+          <Menu className="w-5 h-5" />
+        </button>
+      )}
       {/* Titre page */}
       <div className="flex-1">
         {titre && (

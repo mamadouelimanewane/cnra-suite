@@ -1,9 +1,11 @@
-﻿"use client"
+"use client"
 
 import { useEffect, useRef, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { ClipboardCheck, CheckCircle, XCircle, AlertTriangle, TrendingUp } from "lucide-react"
+import { ClipboardCheck, CheckCircle, XCircle, AlertTriangle, TrendingUp, AlertCircle, Download } from "lucide-react"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
+import { PageSkeleton } from "@/components/PageSkeleton"
+import { EmptyState } from "@/components/EmptyState"
 
 interface Audit {
   id: string; date_audit: string; type_audit: string; resultat: string; score: number | null;
@@ -15,11 +17,21 @@ const RESULTAT_COLORS: Record<string, string> = {
   conforme: "#166534", non_conforme: "#dc2626", partiellement_conforme: "#d97706"
 }
 
+function exportCSV(data: Record<string, unknown>[], filename: string) {
+  if (!data.length) return
+  const keys = Object.keys(data[0])
+  const csv = [keys.join(","), ...data.map(row => keys.map(k => JSON.stringify(row[k] ?? "")).join(","))].join("\n")
+  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" })
+  const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url)
+}
+
 export default function AuditsPage() {
   const supabaseRef = useRef(createClient())
   const [audits, setAudits] = useState<Audit[]>([])
   const [filterResultat, setFilterResultat] = useState("tous")
   const [filterType, setFilterType] = useState("tous")
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const supabase = supabaseRef.current
@@ -27,14 +39,18 @@ export default function AuditsPage() {
       .select("id,date_audit,type_audit,resultat,score,observations,recommandations,auditeur,medias:media_id(nom,type)")
       .order("date_audit", { ascending: false })
       .then(r => {
+        if (r.error) { setError(r.error.message); setLoading(false); return }
         const data = (r.data ?? []).map((a: Record<string, unknown>) => ({
           ...a,
           media_nom: (a.medias as { nom: string } | null)?.nom ?? null,
           media_type: (a.medias as { type: string } | null)?.type ?? null,
         }))
         setAudits(data as Audit[])
+        setLoading(false)
       })
   }, [])
+
+  if (loading) return <PageSkeleton rows={4} />
 
   const types = ["tous", ...Array.from(new Set(audits.map(a => a.type_audit)))]
 
@@ -58,14 +74,34 @@ export default function AuditsPage() {
   }))
 
   return (
-    <div className="p-8 space-y-6">
-      <div>
-        <h1 className="text-2xl font-black text-gray-900">Audits & Contrôles</h1>
-        <p className="text-gray-500 text-sm mt-1">Suivi des missions de contrôle et d&apos;audit des médias par le CNRA</p>
+    <div className="p-4 sm:p-6 space-y-6">
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3">
+          <AlertCircle className="size-5 text-red-500 shrink-0" />
+          <p className="text-sm text-red-700">{error}</p>
+        </div>
+      )}
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-black text-gray-900">Audits & Contrôles</h1>
+          <p className="text-gray-500 text-sm mt-1">Suivi des missions de contrôle et d&apos;audit des médias par le CNRA</p>
+        </div>
+        <button
+          onClick={() => exportCSV(filtered.map(a => ({
+            media: a.media_nom ?? "", type: a.type_audit, date: a.date_audit,
+            resultat: a.resultat, score: a.score ?? "", auditeur: a.auditeur ?? "",
+            observations: a.observations ?? ""
+          })), "audits-cnra.csv")}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-700 hover:border-[#1A3A6B]/30 transition-colors"
+        >
+          <Download className="size-4" />
+          Exporter CSV
+        </button>
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: "Total audits", value: audits.length, icon: ClipboardCheck, color: "bg-blue-50 text-[#1A3A6B]" },
           { label: "Conformes", value: audits.filter(a => a.resultat === "conforme").length, icon: CheckCircle, color: "bg-green-50 text-green-700" },
@@ -81,7 +117,7 @@ export default function AuditsPage() {
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
           <h3 className="font-bold text-gray-900 mb-4">Résultats</h3>
           <ResponsiveContainer width="100%" height={150}>
@@ -133,47 +169,54 @@ export default function AuditsPage() {
         <div className="ml-auto text-sm text-gray-400 flex items-center">{filtered.length} audits</div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b border-gray-100">
-            <tr>
-              {["Média", "Type d'audit", "Date", "Résultat", "Score", "Auditeur", "Observations"].map(h => (
-                <th key={h} className="text-left px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50">
-            {filtered.map(a => {
-              const color = RESULTAT_COLORS[a.resultat] ?? "#6b7280"
-              return (
-                <tr key={a.id} className="hover:bg-gray-50/50">
-                  <td className="px-4 py-3 font-semibold text-[#1A3A6B]">{a.media_nom ?? "—"}</td>
-                  <td className="px-4 py-3 text-gray-600 capitalize">{a.type_audit}</td>
-                  <td className="px-4 py-3 text-gray-500 text-xs">{new Date(a.date_audit).toLocaleDateString("fr-FR")}</td>
-                  <td className="px-4 py-3">
-                    <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: color + "18", color }}>
-                      {a.resultat.replace(/_/g, " ")}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    {a.score != null ? (
-                      <div className="flex items-center gap-2">
-                        <div className="w-16 h-2 bg-gray-100 rounded-full">
-                          <div className="h-2 rounded-full" style={{ width: `${a.score}%`, background: color }} />
+      {filtered.length === 0 ? (
+        <EmptyState
+          icon={ClipboardCheck}
+          title="Aucun audit trouvé"
+          description="Modifiez vos filtres pour afficher des audits."
+        />
+      ) : (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b border-gray-100">
+              <tr>
+                {["Média", "Type d'audit", "Date", "Résultat", "Score", "Auditeur", "Observations"].map(h => (
+                  <th key={h} className="text-left px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {filtered.map(a => {
+                const color = RESULTAT_COLORS[a.resultat] ?? "#6b7280"
+                return (
+                  <tr key={a.id} className="hover:bg-gray-50/50">
+                    <td className="px-4 py-3 font-semibold text-[#1A3A6B]">{a.media_nom ?? "—"}</td>
+                    <td className="px-4 py-3 text-gray-600 capitalize">{a.type_audit}</td>
+                    <td className="px-4 py-3 text-gray-500 text-xs">{new Date(a.date_audit).toLocaleDateString("fr-FR")}</td>
+                    <td className="px-4 py-3">
+                      <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: color + "18", color }}>
+                        {a.resultat.replace(/_/g, " ")}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      {a.score != null ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-16 h-2 bg-gray-100 rounded-full">
+                            <div className="h-2 rounded-full" style={{ width: `${a.score}%`, background: color }} />
+                          </div>
+                          <span className="font-bold text-gray-700">{a.score}</span>
                         </div>
-                        <span className="font-bold text-gray-700">{a.score}</span>
-                      </div>
-                    ) : "—"}
-                  </td>
-                  <td className="px-4 py-3 text-gray-500">{a.auditeur ?? "—"}</td>
-                  <td className="px-4 py-3 text-gray-400 text-xs max-w-48 truncate">{a.observations ?? "—"}</td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
-      </div>
+                      ) : "—"}
+                    </td>
+                    <td className="px-4 py-3 text-gray-500">{a.auditeur ?? "—"}</td>
+                    <td className="px-4 py-3 text-gray-400 text-xs max-w-48 truncate">{a.observations ?? "—"}</td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   )
 }
-

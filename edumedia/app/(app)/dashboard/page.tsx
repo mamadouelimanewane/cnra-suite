@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { formatNumber } from "@/lib/utils"
-import { GraduationCap, School, BookOpen, Users, Award, HelpCircle, TrendingUp, Calendar } from "lucide-react"
+import { GraduationCap, School, BookOpen, Users, Award, HelpCircle, TrendingUp, Calendar, AlertCircle, X } from "lucide-react"
+import { PageSkeleton } from "@/components/PageSkeleton"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
 
 type Stats = {
@@ -32,6 +33,7 @@ export default function DashboardPage() {
   const supabaseRef = useRef(createClient())
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [upcomingFormations, setUpcomingFormations] = useState<{ titre: string; date_debut: string; modalite: string; statut: string }[]>([])
 
   useEffect(() => {
@@ -46,6 +48,7 @@ export default function DashboardPage() {
         supabase.from("formations").select("titre,date_debut,modalite,statut").in("statut", ["planifiee", "en_cours"]).order("date_debut").limit(4),
       ])
 
+      if (etablRes.error) { setError(etablRes.error.message); setLoading(false); return }
       const etabs = etablRes.data || []
       const formations = formRes.data || []
       const ressources = ressRes.data || []
@@ -96,9 +99,18 @@ export default function DashboardPage() {
     amber: "text-amber-400 bg-amber-500/10 border-amber-500/20",
   }
 
+  if (loading) return <PageSkeleton />
+
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-4 sm:p-6 space-y-6">
+      {error && (
+        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3">
+          <AlertCircle className="size-5 text-red-400 shrink-0" />
+          <p className="text-sm text-red-400">{error}</p>
+          <button onClick={() => setError(null)} className="ml-auto text-red-400 hover:text-red-300"><X className="size-4" /></button>
+        </div>
+      )}
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-black text-white">Tableau de bord</h1>
           <p className="text-sm text-gray-400 mt-1">Vue globale de l'éducation aux médias et littératie médiatique au Sénégal</p>
@@ -109,13 +121,9 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {loading ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-28 rounded-2xl bg-white/5 animate-pulse" />)}
-        </div>
-      ) : (
+      {(
         <>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {statCards.map(card => (
               <div key={card.label} className="bg-white/5 border border-white/10 rounded-2xl p-5">
                 <div className={`w-10 h-10 rounded-xl border flex items-center justify-center mb-3 ${colorMap[card.color]}`}>

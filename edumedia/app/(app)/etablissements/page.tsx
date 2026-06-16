@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { formatNumber } from "@/lib/utils"
-import { School, MapPin, Users, Mail, Phone, Calendar } from "lucide-react"
+import { School, MapPin, Users, Mail, Phone, Calendar, AlertCircle, X } from "lucide-react"
+import { PageSkeleton } from "@/components/PageSkeleton"
+import { EmptyState } from "@/components/EmptyState"
 
 type Etablissement = {
   id: string
@@ -47,13 +49,15 @@ export default function EtablissementsPage() {
   const supabaseRef = useRef(createClient())
   const [etablissements, setEtablissements] = useState<Etablissement[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [regionFilter, setRegionFilter] = useState("toutes")
   const [typeFilter, setTypeFilter] = useState("tous")
 
   useEffect(() => {
     const supabase = supabaseRef.current
     async function load() {
-      const { data } = await supabase.from("etablissements").select("*").order("nb_apprenants", { ascending: false })
+      const { data, error: err } = await supabase.from("etablissements").select("*").order("nb_apprenants", { ascending: false })
+      if (err) { setError(err.message); setLoading(false); return }
       setEtablissements(data || [])
       setLoading(false)
     }
@@ -69,8 +73,17 @@ export default function EtablissementsPage() {
   const totalApprenants = filtered.reduce((s, e) => s + (e.nb_apprenants || 0), 0)
   const regionsPresentes = [...new Set(etablissements.map(e => e.region))]
 
+  if (loading) return <PageSkeleton />
+
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
+      {error && (
+        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3">
+          <AlertCircle className="size-5 text-red-400 shrink-0" />
+          <p className="text-sm text-red-400">{error}</p>
+          <button onClick={() => setError(null)} className="ml-auto text-red-400 hover:text-red-300"><X className="size-4" /></button>
+        </div>
+      )}
       <div>
         <h1 className="text-2xl font-black text-white flex items-center gap-3">
           <School className="size-6 text-emerald-400" /> Établissements partenaires
@@ -80,7 +93,7 @@ export default function EtablissementsPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
           <p className="text-xl font-black text-white">{filtered.length}</p>
           <p className="text-xs text-gray-400 mt-1">Établissements</p>
@@ -108,13 +121,8 @@ export default function EtablissementsPage() {
         </select>
       </div>
 
-      {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-36 rounded-2xl bg-white/5 animate-pulse" />)}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filtered.map(e => (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {filtered.map(e => (
             <div key={e.id} className={`bg-white/5 border rounded-2xl p-5 ${e.actif ? "border-white/10" : "border-white/5 opacity-60"}`}>
               <div className="flex items-start gap-3 mb-3">
                 <div className="flex-1">
@@ -159,13 +167,11 @@ export default function EtablissementsPage() {
             </div>
           ))}
           {filtered.length === 0 && (
-            <div className="col-span-2 text-center py-10 text-gray-500">
-              <School className="size-10 mx-auto mb-3 opacity-30" />
-              <p>Aucun établissement pour ce filtre</p>
+            <div className="col-span-2">
+              <EmptyState icon={School} title="Aucun établissement" description="Aucun établissement ne correspond aux filtres sélectionnés." />
             </div>
           )}
         </div>
-      )}
     </div>
   )
 }

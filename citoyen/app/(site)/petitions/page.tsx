@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { Users, Plus, CheckCircle, Clock, TrendingUp } from "lucide-react"
+import { Users, Plus, CheckCircle, Clock, TrendingUp, ChevronLeft, ChevronRight } from "lucide-react"
+
+const PAGE_SIZE = 10
 
 interface Petition {
   id: string
@@ -30,6 +32,7 @@ export default function PetitionsPage() {
   const [signing, setSigning] = useState<string | null>(null)
   const [signed, setSigned] = useState<Set<string>>(new Set())
   const [filtre, setFiltre] = useState("toutes")
+  const [page, setPage] = useState(0)
 
   // Formulaire nouvelle pétition
   const [titre, setTitre] = useState("")
@@ -46,6 +49,8 @@ export default function PetitionsPage() {
   }
 
   const filtered = filtre === "toutes" ? petitions : petitions.filter(p => p.statut === filtre)
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
+  const paginated = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
@@ -62,7 +67,7 @@ export default function PetitionsPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {[
           { label: "Pétitions actives", value: petitions.filter(p => p.statut === "active").length, icon: TrendingUp, color: "text-[#1A3A6B] bg-blue-50" },
           { label: "Total signatures", value: petitions.reduce((s, p) => s + p.nb_signatures, 0).toLocaleString("fr-FR"), icon: Users, color: "text-purple-700 bg-purple-50" },
@@ -88,13 +93,13 @@ export default function PetitionsPage() {
 
       {/* Liste pétitions */}
       <div className="space-y-5">
-        {filtered.map(p => {
+        {paginated.map((p, idx) => {
           const progress = Math.min(100, Math.round(p.nb_signatures / p.objectif_signatures * 100))
           const isSigned = signed.has(p.id)
           const isAccepted = p.statut === "acceptee"
 
           return (
-            <div key={p.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 hover:shadow-md transition-shadow">
+            <div key={p.id} className={`bg-white rounded-2xl border border-gray-100 shadow-sm p-6 hover:shadow-md transition-shadow animate-fade-in-up animate-delay-${(idx % 4 + 1) * 100}`}>
               <div className="flex flex-col sm:flex-row gap-5">
                 <div className="flex-1">
                   <div className="flex items-start gap-3 mb-3">
@@ -150,6 +155,29 @@ export default function PetitionsPage() {
         })}
       </div>
 
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between pt-2">
+          <p className="text-sm text-gray-500">{filtered.length} pétition(s) · Page {page + 1}/{totalPages}</p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setPage(p => Math.max(0, p - 1))}
+              disabled={page === 0}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#1A3A6B] text-white text-sm font-medium disabled:opacity-40 hover:bg-[#0f2347] transition-colors"
+            >
+              <ChevronLeft className="size-4" /> Précédent
+            </button>
+            <button
+              onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+              disabled={page >= totalPages - 1}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#1A3A6B] text-white text-sm font-medium disabled:opacity-40 hover:bg-[#0f2347] transition-colors"
+            >
+              Suivant <ChevronRight className="size-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Modal nouvelle pétition */}
       {showForm && !submitted && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
@@ -169,7 +197,7 @@ export default function PetitionsPage() {
                 <textarea value={desc} onChange={e => setDesc(e.target.value)} rows={4} placeholder="Décrivez votre demande en détail…"
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm resize-none" />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Votre nom / Organisation</label>
                   <input value={auteur} onChange={e => setAuteur(e.target.value)} placeholder="Ex: Association X"

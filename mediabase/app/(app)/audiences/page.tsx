@@ -1,10 +1,11 @@
-﻿"use client"
+"use client"
 
 import { useEffect, useRef, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { TrendingUp, TrendingDown, BarChart2 } from "lucide-react"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend, PieChart, Pie, Cell } from "recharts"
+import { TrendingUp, BarChart2, AlertCircle } from "lucide-react"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts"
 import { formatNumber } from "@/lib/utils"
+import { PageSkeleton } from "@/components/PageSkeleton"
 
 interface Stat {
   id: string; trimestre: number; annee: number; audience_hebdo: number; parts_marche: number;
@@ -17,6 +18,8 @@ export default function AudiencesPage() {
   const [stats, setStats] = useState<Stat[]>([])
   const [filterAnnee, setFilterAnnee] = useState("2024")
   const [filterTrimestre, setFilterTrimestre] = useState("3")
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const supabase = supabaseRef.current
@@ -24,14 +27,18 @@ export default function AudiencesPage() {
       .select("id,trimestre,annee,audience_hebdo,parts_marche,reach_mensuel,taux_fidelite,medias:media_id(nom,type)")
       .order("annee").order("trimestre")
       .then(r => {
+        if (r.error) { setError(r.error.message); setLoading(false); return }
         const data = (r.data ?? []).map((s: Record<string, unknown>) => ({
           ...s,
           media_nom: (s.medias as { nom: string } | null)?.nom ?? null,
           media_type: (s.medias as { type: string } | null)?.type ?? null,
         }))
         setStats(data as Stat[])
+        setLoading(false)
       })
   }, [])
+
+  if (loading) return <PageSkeleton rows={3} />
 
   const annees = [...new Set(stats.map(s => String(s.annee)))].sort()
   const trimestres = [...new Set(stats.filter(s => String(s.annee) === filterAnnee).map(s => String(s.trimestre)))].sort()
@@ -57,7 +64,14 @@ export default function AudiencesPage() {
   const evoData = Object.values(evolution).map(e => ({ label: e.label, total: Math.round(e.total / 1000) }))
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3">
+          <AlertCircle className="size-5 text-red-500 shrink-0" />
+          <p className="text-sm text-red-700">{error}</p>
+        </div>
+      )}
+
       <div>
         <h1 className="text-2xl font-black text-gray-900">Statistiques d&apos;audience</h1>
         <p className="text-gray-500 text-sm mt-1">Mesures d&apos;audience et parts de marché des médias sénégalais</p>
@@ -75,7 +89,7 @@ export default function AudiencesPage() {
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {[
           { label: "Audience cumulée", value: formatNumber(filtered.reduce((s, a) => s + a.audience_hebdo, 0)), sub: "télésp./auditeurs/semaine" },
           { label: "Leader audience", value: topMedias[0]?.media_nom ?? "—", sub: `${formatNumber(topMedias[0]?.audience_hebdo ?? 0)} hebdomadaires` },
@@ -90,7 +104,7 @@ export default function AudiencesPage() {
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {/* Top audiences */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
           <h3 className="font-bold text-gray-900 mb-5">Top audiences hebdo (milliers)</h3>
@@ -191,4 +205,3 @@ export default function AudiencesPage() {
     </div>
   )
 }
-

@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { FileSearch, Search, ExternalLink } from "lucide-react"
+import { FileSearch, Search, ExternalLink, AlertCircle, X, Download } from "lucide-react"
+import { PageSkeleton } from "@/components/PageSkeleton"
+import { EmptyState } from "@/components/EmptyState"
 
 type Contenu = {
   id: string
@@ -40,14 +42,18 @@ export default function ContenusPage() {
   const supabaseRef = useRef(createClient())
   const [contenus, setContenus] = useState<Contenu[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState("")
   const [verdictFilter, setVerdictFilter] = useState("tous")
   const [selected, setSelected] = useState<Contenu | null>(null)
+  const [page, setPage] = useState(0)
+  const PAGE_SIZE = 20
 
   useEffect(() => {
     const supabase = supabaseRef.current
     async function load() {
-      const { data } = await supabase.from("contenus_analyses").select("*").order("date_soumission", { ascending: false })
+      const { data, error: err } = await supabase.from("contenus_analyses").select("*").order("date_soumission", { ascending: false })
+      if (err) { setError(err.message); setLoading(false); return }
       setContenus(data || [])
       setLoading(false)
     }
@@ -59,14 +65,40 @@ export default function ContenusPage() {
     const matchVerdict = verdictFilter === "tous" || c.verdict === verdictFilter
     return matchSearch && matchVerdict
   })
+  const paginated = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
+
+  function exportCSV(data: Record<string, unknown>[], filename: string) {
+    if (!data.length) return
+    const keys = Object.keys(data[0])
+    const csv = [keys.join(","), ...data.map(row => keys.map(k => JSON.stringify(row[k] ?? "")).join(","))].join("\n")
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a"); a.href = url; a.download = filename; a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  if (loading) return <PageSkeleton />
 
   return (
-    <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-black text-white flex items-center gap-3">
-          <FileSearch className="size-6 text-purple-400" /> Contenus analysés
-        </h1>
-        <p className="text-sm text-gray-400 mt-1">{contenus.length} contenus dans la base d'analyse</p>
+    <div className="p-4 sm:p-6 space-y-6">
+      {error && (
+        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3">
+          <AlertCircle className="size-5 text-red-400 shrink-0" />
+          <p className="text-sm text-red-400">{error}</p>
+          <button onClick={() => setError(null)} className="ml-auto text-red-400 hover:text-red-300"><X className="size-4" /></button>
+        </div>
+      )}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-black text-white flex items-center gap-3">
+            <FileSearch className="size-6 text-emerald-400" /> Contenus analysés
+          </h1>
+          <p className="text-sm text-gray-400 mt-1">{contenus.length} contenus dans la base d'analyse</p>
+        </div>
+        <button onClick={() => exportCSV(contenus as unknown as Record<string, unknown>[], "contenus.csv")}
+          className="flex items-center gap-2 px-3 py-2 bg-white/10 hover:bg-white/20 text-white text-sm rounded-lg transition-colors">
+          <Download className="size-4" /> Exporter CSV
+        </button>
       </div>
 
       <div className="flex gap-3 flex-wrap">
@@ -87,9 +119,7 @@ export default function ContenusPage() {
 
       <div className="flex gap-4">
         <div className={`flex-1 space-y-2 ${selected ? "max-h-[calc(100vh-14rem)] overflow-y-auto pr-2" : ""}`}>
-          {loading ? (
-            Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-20 rounded-2xl bg-white/5 animate-pulse" />)
-          ) : filtered.map(c => (
+          {paginated.map(c => (
             <button key={c.id} onClick={() => setSelected(selected?.id === c.id ? null : c)}
               className={`w-full text-left bg-white/5 border rounded-2xl p-4 hover:border-purple-500/30 transition-all ${selected?.id === c.id ? "border-purple-500/50 bg-purple-500/5" : "border-white/10"}`}>
               <div className="flex items-start gap-3">
@@ -119,10 +149,20 @@ export default function ContenusPage() {
               </div>
             </button>
           ))}
-          {!loading && filtered.length === 0 && (
-            <div className="text-center py-10 text-gray-500">
-              <FileSearch className="size-10 mx-auto mb-3 opacity-30" />
-              <p>Aucun contenu trouvé</p>
+          {filtered.length === 0 && (
+            <EmptyState icon={FileSearch} title="Aucun contenu trouvé" description="Modifiez vos filtres ou soumettez de nouveaux contenus." />
+          )}
+          {filtered.length > PAGE_SIZE && (
+            <div className="flex items-center justify-between pt-4">
+              <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}
+                className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-sm text-gray-400 hover:bg-white/10 disabled:opacity-30 transition-colors">
+                Précédent
+              </button>
+              <span className="text-xs text-gray-500">{page + 1} / {Math.ceil(filtered.length / PAGE_SIZE)}</span>
+              <button onClick={() => setPage(p => p + 1)} disabled={(page + 1) * PAGE_SIZE >= filtered.length}
+                className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-sm text-gray-400 hover:bg-white/10 disabled:opacity-30 transition-colors">
+                Suivant
+              </button>
             </div>
           )}
         </div>

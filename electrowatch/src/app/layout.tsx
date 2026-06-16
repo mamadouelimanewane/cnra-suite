@@ -6,11 +6,10 @@ const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
 
 export const metadata: Metadata = {
   title: {
-    default: "CNRA ElectroWatch — Observatoire Électoral des Médias",
-    template: "%s | CNRA ElectroWatch",
+    template: "%s — CNRA ElectroWatch",
+    default: "CNRA ElectroWatch",
   },
-  description:
-    "Plateforme officielle du CNRA pour le monitoring du pluralisme politique dans les médias audiovisuels sénégalais.",
+  description: "Surveillance du temps de parole et de l'équité médiatique électorale",
   keywords: ["CNRA", "Sénégal", "élections", "médias", "pluralisme", "régulation audiovisuelle"],
   robots: { index: false, follow: false },
 }

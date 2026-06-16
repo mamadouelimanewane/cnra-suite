@@ -52,9 +52,9 @@ export default function RealtimePage() {
   const alertesCritiques = alertes.filter(a => a.severite === "critique" || a.severite === "elevee")
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
       {/* Header live */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-black text-gray-900 flex items-center gap-3">
             <Zap className="size-7 text-red-500" />
@@ -70,7 +70,7 @@ export default function RealtimePage() {
       </div>
 
       {/* Compteurs live */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: "Alertes totales", value: alertes.length, icon: AlertTriangle, color: "text-red-600 bg-red-50" },
           { label: "Critiques/Élevées", value: alertesCritiques.length, icon: Zap, color: "text-orange-600 bg-orange-50" },
@@ -85,7 +85,7 @@ export default function RealtimePage() {
         ))}
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {/* Flux alertes */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
@@ -140,7 +140,7 @@ export default function RealtimePage() {
           <Eye className="size-5 text-[#C9A84C]" />
           Médias sous surveillance active
         </h3>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {["RTS 1", "TFM", "2STV", "RFM Radio", "Sud FM", "Sen TV"].map(m => (
             <div key={m} className="bg-white/10 rounded-xl px-4 py-3 flex items-center gap-3">
               <div className="w-2.5 h-2.5 rounded-full bg-green-400 animate-pulse" />

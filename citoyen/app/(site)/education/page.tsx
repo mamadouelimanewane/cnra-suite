@@ -153,7 +153,7 @@ export default function EducationPage() {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center p-4 pt-16 overflow-auto">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl">
             <div className="p-6 border-b border-gray-100">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${selectedFiche.color}`}>{selectedFiche.niveau}</span>
                   <h2 className="text-xl font-bold text-gray-900 mt-2">{selectedFiche.titre}</h2>

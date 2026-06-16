@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { formatNumber } from "@/lib/utils"
-import { Tv, Radio, Globe, Users, Building2, TrendingUp, Award, AlertTriangle } from "lucide-react"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis } from "recharts"
+import { Tv, Radio, Globe, Users, Building2, TrendingUp, AlertCircle } from "lucide-react"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
+import { PageSkeleton } from "@/components/PageSkeleton"
 
 interface Media { id: string; nom: string; type: string; statut: string; audience_estimee: number | null; couverture: string | null }
 interface StatsAudience { media_nom: string; audience_hebdo: number; parts_marche: number }
@@ -18,6 +19,7 @@ export default function DashboardPage() {
   const [nbJournalistes, setNbJournalistes] = useState(0)
   const [nbGroupes, setNbGroupes] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const supabase = supabaseRef.current
@@ -28,10 +30,10 @@ export default function DashboardPage() {
         supabase.from("journalistes").select("id", { count: "exact", head: true }),
         supabase.from("groupes_media").select("id", { count: "exact", head: true }),
       ])
-      console.log("medias:", m.data, m.error)
-      console.log("audiences:", a.data, a.error)
-      console.log("journalistes count:", j.count, j.error)
-      console.log("groupes count:", g.count, g.error)
+
+      if (m.error) { setError(m.error.message); setLoading(false); return }
+      if (a.error) { setError(a.error.message); setLoading(false); return }
+
       setMedias((m.data ?? []) as Media[])
       setAudiences((a.data ?? []).map((d: Record<string, unknown>) => ({
         media_nom: (d.media_nom as { nom: string })?.nom ?? "?",
@@ -44,6 +46,8 @@ export default function DashboardPage() {
     }
     load()
   }, [])
+
+  if (loading) return <PageSkeleton rows={4} />
 
   const tv = medias.filter(m => m.type === "television")
   const radio = medias.filter(m => m.type === "radio")
@@ -63,9 +67,16 @@ export default function DashboardPage() {
     .map(a => ({ name: a.media_nom.split(" ")[0], audience: Math.round(a.audience_hebdo / 1000), part: a.parts_marche }))
 
   return (
-    <div className="p-8 space-y-8">
+    <div className="p-4 sm:p-6 space-y-8">
+      {error && (
+        <div className="m-4 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3">
+          <AlertCircle className="size-5 text-red-500 shrink-0" />
+          <p className="text-sm text-red-700">{error}</p>
+        </div>
+      )}
+
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-black text-gray-900">Tableau de bord</h1>
           <p className="text-gray-500 text-sm mt-1">Paysage médiatique sénégalais — Vue d&apos;ensemble</p>
@@ -77,7 +88,7 @@ export default function DashboardPage() {
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: "Médias actifs", value: actifs.length, icon: Tv, color: "bg-blue-50 text-[#1A3A6B]", sub: `sur ${medias.length} enregistrés` },
           { label: "Audience cumulée", value: formatNumber(totalAudience), icon: TrendingUp, color: "bg-green-50 text-green-700", sub: "téléspectateurs/auditeurs" },
@@ -94,7 +105,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Sous-KPIs par type */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {[
           { label: "Télévisions", value: tv.length, icon: Tv, color: "#1A3A6B" },
           { label: "Radios", value: radio.length, icon: Radio, color: "#C9A84C" },
@@ -113,21 +124,19 @@ export default function DashboardPage() {
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Audience top médias */}
         <div className="col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
           <h3 className="font-bold text-gray-900 mb-5">Top audiences (milliers, T3 2024)</h3>
-          {loading ? <div className="h-48 flex items-center justify-center text-gray-400">Chargement…</div> : (
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={audienceData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} />
-                <Tooltip formatter={(v: number) => [`${v}k auditeurs/téléspectateurs`]} />
-                <Bar dataKey="audience" fill="#1A3A6B" radius={[4, 4, 0, 0]} name="Audience (k)" />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={audienceData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+              <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+              <YAxis tick={{ fontSize: 11 }} />
+              <Tooltip formatter={(v: number) => [`${v}k auditeurs/téléspectateurs`]} />
+              <Bar dataKey="audience" fill="#1A3A6B" radius={[4, 4, 0, 0]} name="Audience (k)" />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
 
         {/* Répartition par type */}

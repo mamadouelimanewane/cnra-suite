@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { getStatutCampagneBadge } from "@/lib/utils"
-import { Plus, Calendar, ChevronRight, Trash2 } from "lucide-react"
+import { Plus, Calendar, ChevronRight, Trash2, AlertCircle } from "lucide-react"
 import Link from "next/link"
 import type { Campagne } from "@/types"
 
@@ -12,6 +12,7 @@ export function CampagnesClient() {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [form, setForm] = useState({
     nom: "", description: "",
     date_debut: "", date_fin: "",
@@ -20,7 +21,8 @@ export function CampagnesClient() {
 
   const charger = useCallback(async () => {
     const supabase = createClient()
-    const { data } = await supabase.from("campagnes").select("*").order("date_debut", { ascending: false })
+    const { data, error: err } = await supabase.from("campagnes").select("*").order("date_debut", { ascending: false })
+    if (err) setError("Impossible de charger les campagnes")
     setCampagnes(data ?? [])
     setLoading(false)
   }, [])
@@ -62,7 +64,14 @@ export function CampagnesClient() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3">
+          <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />
+          <p className="text-sm text-red-700">{error}</p>
+        </div>
+      )}
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-bold text-gray-900">Campagnes électorales</h2>
           <p className="text-sm text-gray-500 mt-0.5">{campagnes.length} campagne{campagnes.length > 1 ? "s" : ""} enregistrée{campagnes.length > 1 ? "s" : ""}</p>

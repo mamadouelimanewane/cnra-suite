@@ -5,8 +5,8 @@ import "./globals.css"
 const geist = Geist({ variable: "--font-sans", subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "CNRA AntiDeep — Détection de deepfakes et désinformation",
-  description: "Plateforme de détection et signalement des contenus audiovisuels falsifiés, deepfakes et campagnes de désinformation ciblant le Sénégal.",
+  title: { template: '%s — CNRA AntiDeep', default: 'CNRA AntiDeep' },
+  description: 'Détection IA des deepfakes et désinformation audiovisuelle',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

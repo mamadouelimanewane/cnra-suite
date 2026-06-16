@@ -5,8 +5,8 @@ import "./globals.css"
 const geist = Geist({ variable: "--font-sans", subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "CNRA MediaBase — Base de données des médias sénégalais",
-  description: "Répertoire officiel et exhaustif du paysage médiatique sénégalais : TV, radios, médias en ligne, journalistes, audiences, agréments.",
+  title: { template: '%s — CNRA MediaBase', default: 'CNRA MediaBase' },
+  description: 'Base de données officielle du paysage médiatique sénégalais',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

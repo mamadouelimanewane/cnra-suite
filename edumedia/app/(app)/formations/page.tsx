@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { formatNumber } from "@/lib/utils"
-import { Users, MapPin, Calendar, CheckCircle, Clock, Loader2, XCircle, Star } from "lucide-react"
+import { Users, MapPin, Calendar, CheckCircle, Clock, Loader2, XCircle, Star, AlertCircle, X } from "lucide-react"
+import { PageSkeleton } from "@/components/PageSkeleton"
+import { EmptyState } from "@/components/EmptyState"
 
 type Formation = {
   id: string
@@ -32,12 +34,14 @@ export default function FormationsPage() {
   const supabaseRef = useRef(createClient())
   const [formations, setFormations] = useState<Formation[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState("tous")
 
   useEffect(() => {
     const supabase = supabaseRef.current
     async function load() {
-      const { data } = await supabase.from("formations").select("*").order("date_debut", { ascending: false })
+      const { data, error: err } = await supabase.from("formations").select("*").order("date_debut", { ascending: false })
+      if (err) { setError(err.message); setLoading(false); return }
       setFormations(data || [])
       setLoading(false)
     }
@@ -58,8 +62,17 @@ export default function FormationsPage() {
     { key: "terminee", label: "Terminées", count: formations.filter(f => f.statut === "terminee").length },
   ]
 
+  if (loading) return <PageSkeleton rows={5} />
+
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
+      {error && (
+        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3">
+          <AlertCircle className="size-5 text-red-400 shrink-0" />
+          <p className="text-sm text-red-400">{error}</p>
+          <button onClick={() => setError(null)} className="ml-auto text-red-400 hover:text-red-300"><X className="size-4" /></button>
+        </div>
+      )}
       <div>
         <h1 className="text-2xl font-black text-white flex items-center gap-3">
           <Users className="size-6 text-emerald-400" /> Sessions de formation
@@ -67,7 +80,7 @@ export default function FormationsPage() {
         <p className="text-sm text-gray-400 mt-1">{formations.length} sessions organisées</p>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
           <p className="text-xl font-black text-white">{formatNumber(totalParticipants)}</p>
           <p className="text-xs text-gray-400 mt-1">Participants total</p>
@@ -96,9 +109,7 @@ export default function FormationsPage() {
       </div>
 
       <div className="space-y-3">
-        {loading ? (
-          Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-28 rounded-2xl bg-white/5 animate-pulse" />)
-        ) : filtered.map(f => {
+        {filtered.map(f => {
           const sc = STATUT_CONFIG[f.statut] || STATUT_CONFIG.planifiee
           return (
             <div key={f.id} className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-emerald-500/20 transition-all">
@@ -148,11 +159,8 @@ export default function FormationsPage() {
             </div>
           )
         })}
-        {!loading && filtered.length === 0 && (
-          <div className="text-center py-10 text-gray-500">
-            <Users className="size-10 mx-auto mb-3 opacity-30" />
-            <p>Aucune formation dans cette catégorie</p>
-          </div>
+        {filtered.length === 0 && (
+          <EmptyState icon={Users} title="Aucune formation" description="Aucune session de formation dans cette catégorie." />
         )}
       </div>
     </div>

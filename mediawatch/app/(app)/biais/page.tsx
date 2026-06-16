@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { TrendingUp } from "lucide-react"
+import { TrendingUp, AlertCircle } from "lucide-react"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts"
+import { PageSkeleton } from "@/components/PageSkeleton"
 
 interface Obs {
   id: string; thematique: string; ton: string | null; duree_minutes: number | null; media_nom: string | null; date_obs: string
@@ -16,6 +17,8 @@ const TON_COLORS: Record<string, string> = {
 export default function BiaisPage() {
   const supabaseRef = useRef(createClient())
   const [obs, setObs] = useState<Obs[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const sb = supabaseRef.current
@@ -23,9 +26,11 @@ export default function BiaisPage() {
       .select("id,thematique,ton,duree_minutes,date_obs,medias:media_id(nom)")
       .order("date_obs", { ascending: false })
       .then(r => {
+        if (r.error) { setError(r.error.message); setLoading(false); return }
         setObs((r.data ?? []).map((x: Record<string, unknown>) => ({
           ...x, media_nom: (x.medias as { nom: string } | null)?.nom ?? null
         })) as Obs[])
+        setLoading(false)
       })
   }, [])
 
@@ -48,8 +53,16 @@ export default function BiaisPage() {
     return { theme, total: t.length, ...tonsCount }
   }).sort((a, b) => b.total - a.total)
 
+  if (loading) return <PageSkeleton rows={3} />
+
   return (
-    <div className="p-8 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
+      {error && (
+        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3">
+          <AlertCircle className="size-5 text-red-400 shrink-0" />
+          <p className="text-sm text-red-400">{error}</p>
+        </div>
+      )}
       <div>
         <h1 className="text-2xl font-black text-gray-900">Analyse des biais éditoriaux</h1>
         <p className="text-gray-500 text-sm mt-1">Détection des déséquilibres de ton et orientations éditoriales par média</p>

@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { Award, Search, CheckCircle, XCircle, Clock } from "lucide-react"
+import { Award, Search, CheckCircle, XCircle, Clock, AlertCircle, X } from "lucide-react"
+import { PageSkeleton } from "@/components/PageSkeleton"
+import { EmptyState } from "@/components/EmptyState"
 
 type Certificat = {
   id: string
@@ -25,12 +27,14 @@ export default function CertificatsPage() {
   const supabaseRef = useRef(createClient())
   const [certificats, setCertificats] = useState<Certificat[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState("")
 
   useEffect(() => {
     const supabase = supabaseRef.current
     async function load() {
-      const { data } = await supabase.from("certificats").select("*").order("date_delivrance", { ascending: false })
+      const { data, error: err } = await supabase.from("certificats").select("*").order("date_delivrance", { ascending: false })
+      if (err) { setError(err.message); setLoading(false); return }
       setCertificats(data || [])
       setLoading(false)
     }
@@ -44,8 +48,17 @@ export default function CertificatsPage() {
     (c.etablissement || "").toLowerCase().includes(search.toLowerCase())
   )
 
+  if (loading) return <PageSkeleton rows={3} />
+
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
+      {error && (
+        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3">
+          <AlertCircle className="size-5 text-red-400 shrink-0" />
+          <p className="text-sm text-red-400">{error}</p>
+          <button onClick={() => setError(null)} className="ml-auto text-red-400 hover:text-red-300"><X className="size-4" /></button>
+        </div>
+      )}
       <div>
         <h1 className="text-2xl font-black text-white flex items-center gap-3">
           <Award className="size-6 text-emerald-400" /> Certificats délivrés
@@ -53,7 +66,7 @@ export default function CertificatsPage() {
         <p className="text-sm text-gray-400 mt-1">{certificats.length} certificats — {certificats.filter(c => c.statut === "valide").length} valides</p>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
           <p className="text-xl font-black text-emerald-400">{certificats.filter(c => c.statut === "valide").length}</p>
           <p className="text-xs text-gray-400 mt-1">Valides</p>
@@ -93,7 +106,7 @@ export default function CertificatsPage() {
               Array.from({ length: 5 }).map((_, i) => (
                 <tr key={i}><td colSpan={7} className="py-3"><div className="h-5 rounded bg-white/5 animate-pulse" /></td></tr>
               ))
-            ) : filtered.map(c => {
+            ) : loading ? null : filtered.map(c => {
               const sc = STATUT_CONFIG[c.statut] || STATUT_CONFIG.valide
               return (
                 <tr key={c.id} className="hover:bg-white/5 transition-colors">
@@ -123,11 +136,8 @@ export default function CertificatsPage() {
             })}
           </tbody>
         </table>
-        {!loading && filtered.length === 0 && (
-          <div className="text-center py-10 text-gray-500">
-            <Award className="size-10 mx-auto mb-3 opacity-30" />
-            <p>Aucun certificat trouvé</p>
-          </div>
+        {filtered.length === 0 && (
+          <EmptyState icon={Award} title="Aucun certificat trouvé" description="Aucun certificat ne correspond à votre recherche." />
         )}
       </div>
     </div>

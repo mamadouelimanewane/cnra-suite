@@ -38,14 +38,29 @@ const groups = [
   },
 ]
 
-export function Sidebar() {
+interface SidebarProps {
+  mobileOpen?: boolean
+  onMobileClose?: () => void
+}
+
+export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
 
   return (
+    <>
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/60 lg:hidden"
+          onClick={onMobileClose}
+        />
+      )}
     <aside className={cn(
       "flex flex-col h-screen bg-gray-950 text-white transition-all duration-300 shrink-0 border-r border-white/5",
-      collapsed ? "w-16" : "w-64"
+      "fixed inset-y-0 left-0 z-50 lg:static",
+      "w-72 lg:w-auto",
+      mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
+      collapsed ? "lg:w-16" : "lg:w-64"
     )}>
       <div className="flex items-center gap-3 px-4 py-5 border-b border-white/10">
         <div className="w-9 h-9 rounded-xl bg-purple-500/20 flex items-center justify-center shrink-0">
@@ -79,6 +94,7 @@ export function Sidebar() {
               const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
               return (
                 <Link key={item.href} href={item.href} title={collapsed ? item.name : undefined}
+                  onClick={onMobileClose}
                   className={cn(
                     "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors mb-0.5",
                     isActive ? "bg-purple-500/20 text-purple-400" : "text-gray-400 hover:bg-white/5 hover:text-white"
@@ -101,5 +117,6 @@ export function Sidebar() {
         </div>
       )}
     </aside>
+    </>
   )
 }

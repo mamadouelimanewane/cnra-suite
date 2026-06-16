@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { getNiveauAlerteColor } from "@/lib/utils"
-import { AlertCircle, AlertTriangle, Info, CheckCircle, Filter } from "lucide-react"
+import { AlertCircle, AlertTriangle, Info, CheckCircle, Filter, Search } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { Alerte } from "@/types"
 
@@ -15,6 +15,8 @@ export function AlertesClient() {
   const [loading, setLoading] = useState(true)
   const [filtreStatut, setFiltreStatut] = useState<string>("non_lue")
   const [filtreNiveau, setFiltreNiveau] = useState<string>("")
+  const [search, setSearch] = useState("")
+  const [error, setError] = useState<string | null>(null)
 
   const charger = useCallback(async () => {
     const supabase = createClient()
@@ -26,7 +28,8 @@ export function AlertesClient() {
     if (filtreStatut) q = q.eq("statut", filtreStatut)
     if (filtreNiveau) q = q.eq("niveau", filtreNiveau)
 
-    const { data } = await q
+    const { data, error: err } = await q
+    if (err) setError("Impossible de charger les alertes")
     setAlertes((data as Alerte[]) ?? [])
     setLoading(false)
   }, [filtreStatut, filtreNiveau])
@@ -45,12 +48,28 @@ export function AlertesClient() {
   const counts = { non_lue: 0, en_cours: 0, resolue: 0 }
   alertes.forEach((a) => { counts[a.statut as keyof typeof counts]++ })
 
+  const displayedAlertes = search
+    ? alertes.filter((a) =>
+        a.message.toLowerCase().includes(search.toLowerCase()) ||
+        (a.details ?? "").toLowerCase().includes(search.toLowerCase()) ||
+        (a.media?.nom ?? "").toLowerCase().includes(search.toLowerCase()) ||
+        (a.parti?.nom ?? "").toLowerCase().includes(search.toLowerCase())
+      )
+    : alertes
+
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       <div>
         <h2 className="text-xl font-bold text-gray-900">Alertes de déséquilibre</h2>
         <p className="text-sm text-gray-500 mt-0.5">Déséquilibres détectés automatiquement après chaque saisie</p>
       </div>
+
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3">
+          <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />
+          <p className="text-sm text-red-700">{error}</p>
+        </div>
+      )}
 
       {/* Filtres */}
       <div className="flex gap-3 flex-wrap items-center">
@@ -64,6 +83,12 @@ export function AlertesClient() {
               {s === "" ? "Toutes" : LABELS_STATUT[s]}
             </button>
           ))}
+        </div>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input value={search} onChange={e => setSearch(e.target.value)}
+            placeholder="Rechercher..."
+            className="pl-9 pr-4 py-2 text-sm bg-white border border-gray-200 rounded-lg w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-[#1A3A6B]/20" />
         </div>
         <div className="relative">
           <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -92,7 +117,7 @@ export function AlertesClient() {
         </div>
       ) : (
         <div className="space-y-3">
-          {alertes.map((alerte) => {
+          {displayedAlertes.map((alerte) => {
             const Icon = ICONES[alerte.niveau] ?? Info
             const colorClass = getNiveauAlerteColor(alerte.niveau)
             return (

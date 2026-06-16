@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { AlertTriangle, CheckCircle, Clock, XCircle } from "lucide-react"
+import { AlertTriangle, CheckCircle, Clock, XCircle, AlertCircle } from "lucide-react"
+import { PageSkeleton } from "@/components/PageSkeleton"
+import { EmptyState } from "@/components/EmptyState"
 
 interface Alerte {
   id: string; type_alerte: string; severite: string; titre: string; description: string | null;
@@ -17,6 +19,8 @@ export default function AlertesPage() {
   const [alertes, setAlertes] = useState<Alerte[]>([])
   const [filterSev, setFilterSev] = useState("tous")
   const [filterStatut, setFilterStatut] = useState("tous")
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const sb = supabaseRef.current
@@ -24,11 +28,15 @@ export default function AlertesPage() {
       .select("id,type_alerte,severite,titre,description,date_alerte,statut,traitee_par,medias:media_id(nom)")
       .order("date_alerte", { ascending: false })
       .then(r => {
+        if (r.error) { setError(r.error.message); setLoading(false); return }
         setAlertes((r.data ?? []).map((x: Record<string, unknown>) => ({
           ...x, media_nom: (x.medias as { nom: string } | null)?.nom ?? null
         })) as Alerte[])
+        setLoading(false)
       })
   }, [])
+
+  if (loading) return <PageSkeleton rows={4} />
 
   const filtered = alertes
     .filter(a => (filterSev === "tous" || a.severite === filterSev) && (filterStatut === "tous" || a.statut === filterStatut))
@@ -42,14 +50,21 @@ export default function AlertesPage() {
   }
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
+      {error && (
+        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3">
+          <AlertCircle className="size-5 text-red-400 shrink-0" />
+          <p className="text-sm text-red-400">{error}</p>
+        </div>
+      )}
+
       <div>
         <h1 className="text-2xl font-black text-gray-900">Alertes de monitoring</h1>
         <p className="text-gray-500 text-sm mt-1">Signalements et non-conformités détectés lors de la surveillance des médias</p>
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: "Critiques", value: stats.critique, color: "bg-red-50 text-red-700", icon: XCircle },
           { label: "Élevées", value: stats.elevee, color: "bg-orange-50 text-orange-700", icon: AlertTriangle },
@@ -78,41 +93,42 @@ export default function AlertesPage() {
       </div>
 
       {/* Liste alertes */}
-      <div className="space-y-3">
-        {filtered.map(a => {
-          const color = SEV_COLORS[a.severite] ?? "#6b7280"
-          return (
-            <div key={a.id} className="bg-white rounded-2xl border shadow-sm p-5" style={{ borderLeftWidth: 4, borderLeftColor: color, borderColor: color + "30" }}>
-              <div className="flex items-start gap-4">
-                <AlertTriangle className="size-5 mt-0.5 shrink-0" style={{ color }} />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3 mb-1 flex-wrap">
-                    <h3 className="font-bold text-gray-900 text-sm">{a.titre}</h3>
-                    <span className="text-xs px-2 py-0.5 rounded-full font-bold capitalize" style={{ background: color + "18", color }}>{a.severite}</span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${a.statut === "nouvelle" ? "bg-red-100 text-red-700" : a.statut === "resolue" ? "bg-green-100 text-green-700" : a.statut === "en_cours" ? "bg-yellow-100 text-yellow-700" : "bg-gray-100 text-gray-600"}`}>
-                      {a.statut.replace(/_/g, " ")}
-                    </span>
-                  </div>
-                  {a.description && <p className="text-sm text-gray-500 mb-2">{a.description}</p>}
-                  <div className="flex items-center gap-4 text-xs text-gray-400 flex-wrap">
-                    <span className="font-medium text-gray-600">{a.media_nom}</span>
-                    <span>•</span>
-                    <span>{a.type_alerte.replace(/_/g, " ")}</span>
-                    <span>•</span>
-                    <span>{new Date(a.date_alerte).toLocaleDateString("fr-FR")}</span>
-                    {a.traitee_par && <><span>•</span><span>Traité par: {a.traitee_par}</span></>}
+      {filtered.length === 0 ? (
+        <EmptyState
+          icon={CheckCircle}
+          title="Aucune alerte correspondante"
+          description="Modifiez vos filtres pour afficher des alertes de monitoring."
+        />
+      ) : (
+        <div className="space-y-3">
+          {filtered.map(a => {
+            const color = SEV_COLORS[a.severite] ?? "#6b7280"
+            return (
+              <div key={a.id} className="bg-white rounded-2xl border shadow-sm p-5" style={{ borderLeftWidth: 4, borderLeftColor: color, borderColor: color + "30" }}>
+                <div className="flex items-start gap-4">
+                  <AlertTriangle className="size-5 mt-0.5 shrink-0" style={{ color }} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-1 flex-wrap">
+                      <h3 className="font-bold text-gray-900 text-sm">{a.titre}</h3>
+                      <span className="text-xs px-2 py-0.5 rounded-full font-bold capitalize" style={{ background: color + "18", color }}>{a.severite}</span>
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${a.statut === "nouvelle" ? "bg-red-100 text-red-700" : a.statut === "resolue" ? "bg-green-100 text-green-700" : a.statut === "en_cours" ? "bg-yellow-100 text-yellow-700" : "bg-gray-100 text-gray-600"}`}>
+                        {a.statut.replace(/_/g, " ")}
+                      </span>
+                    </div>
+                    {a.description && <p className="text-sm text-gray-500 mb-2">{a.description}</p>}
+                    <div className="flex items-center gap-4 text-xs text-gray-400 flex-wrap">
+                      <span className="font-medium text-gray-600">{a.media_nom}</span>
+                      <span>•</span>
+                      <span>{a.type_alerte.replace(/_/g, " ")}</span>
+                      <span>•</span>
+                      <span>{new Date(a.date_alerte).toLocaleDateString("fr-FR")}</span>
+                      {a.traitee_par && <><span>•</span><span>Traité par: {a.traitee_par}</span></>}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )
-        })}
-      </div>
-
-      {filtered.length === 0 && (
-        <div className="text-center py-20 text-gray-400">
-          <CheckCircle className="size-12 mx-auto mb-3 text-green-400" />
-          <p className="font-semibold">Aucune alerte correspondant aux filtres</p>
+            )
+          })}
         </div>
       )}
     </div>

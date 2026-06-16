@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { Users, Clock } from "lucide-react"
+import { Users, Clock, AlertCircle } from "lucide-react"
+import { PageSkeleton } from "@/components/PageSkeleton"
 
 interface ActeurStats { acteur: string; parti: string | null; type_acteur: string; total_sec: number; nb_interventions: number; nb_medias: number }
 
@@ -13,11 +14,14 @@ const TYPE_COLORS: Record<string, string> = {
 export default function ActeursPage() {
   const supabaseRef = useRef(createClient())
   const [acteurs, setActeurs] = useState<ActeurStats[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     supabaseRef.current.from("temps_parole")
       .select("acteur,parti,type_acteur,duree_secondes,media_id")
       .then(r => {
+        if (r.error) { setError(r.error.message); setLoading(false); return }
         const acc: Record<string, { parti: string | null; type: string; total: number; interventions: number; medias: Set<string> }> = {}
         ;(r.data ?? []).forEach((row: { acteur: string; parti: string | null; type_acteur: string; duree_secondes: number; media_id: string }) => {
           if (!acc[row.acteur]) acc[row.acteur] = { parti: row.parti, type: row.type_acteur, total: 0, interventions: 0, medias: new Set() }
@@ -28,11 +32,20 @@ export default function ActeursPage() {
         setActeurs(Object.entries(acc).map(([acteur, v]) => ({
           acteur, parti: v.parti, type_acteur: v.type, total_sec: v.total, nb_interventions: v.interventions, nb_medias: v.medias.size
         })).sort((a, b) => b.total_sec - a.total_sec))
+        setLoading(false)
       })
   }, [])
 
+  if (loading) return <PageSkeleton rows={4} />
+
   return (
-    <div className="p-8 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
+      {error && (
+        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3">
+          <AlertCircle className="size-5 text-red-400 shrink-0" />
+          <p className="text-sm text-red-400">{error}</p>
+        </div>
+      )}
       <div>
         <h1 className="text-2xl font-black text-gray-900">Acteurs politiques suivis</h1>
         <p className="text-gray-500 text-sm mt-1">{acteurs.length} personnalités monitorées — classement par temps de parole cumulé</p>
