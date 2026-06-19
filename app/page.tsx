@@ -75,6 +75,66 @@ const APPS = [
     tag: "Formation",
     url: "https://cnra-edumedia.vercel.app",
   },
+  {
+    id: "kidsprotect",
+    emoji: "🧸",
+    name: "KidsProtect",
+    tagline: "Protection des mineurs",
+    desc: "Algorithme de détection et signalement des programmes inadaptés ou hors signalétique.",
+    color: "#ec4899",
+    glow: "rgba(236,72,153,0.15)",
+    border: "rgba(236,72,153,0.25)",
+    tag: "Jeunesse",
+    url: "https://cnra-kidsprotect.vercel.app",
+  },
+  {
+    id: "adwatch",
+    emoji: "📢",
+    name: "AdWatch",
+    tagline: "Régulation publicitaire",
+    desc: "Suivez le volume publicitaire et détectez les annonces trompeuses ou interdites.",
+    color: "#eab308",
+    glow: "rgba(234,179,8,0.15)",
+    border: "rgba(234,179,8,0.25)",
+    tag: "Publicité",
+    url: "https://cnra-adwatch.vercel.app",
+  },
+  {
+    id: "streamregul",
+    emoji: "🌐",
+    name: "StreamRegul",
+    tagline: "Régulation Web & Streaming",
+    desc: "Cartographie et surveillance des Web-TVs et créateurs de contenu sur les réseaux.",
+    color: "#06b6d4",
+    glow: "rgba(6,182,212,0.15)",
+    border: "rgba(6,182,212,0.25)",
+    tag: "Nouveaux Médias",
+    url: "https://cnra-streamregul.vercel.app",
+  },
+  {
+    id: "copyright",
+    emoji: "⚖️",
+    name: "CopyRight",
+    tagline: "Droits d'Auteur",
+    desc: "Portail dédié aux plaintes pour diffusion non autorisée et suivi du piratage.",
+    color: "#6366f1",
+    glow: "rgba(99,102,241,0.15)",
+    border: "rgba(99,102,241,0.25)",
+    tag: "Propriété Intel.",
+    url: "https://cnra-copyright.vercel.app",
+  },
+  {
+    id: "analytics",
+    emoji: "🧠",
+    name: "CNRA Analytics",
+    tagline: "Tableau de bord IA",
+    desc: "Agrégez les données de régulation et bénéficiez de prédictions IA avancées.",
+    color: "#14b8a6",
+    glow: "rgba(20,184,166,0.15)",
+    border: "rgba(20,184,166,0.25)",
+    tag: "Big Data",
+    url: "https://cnra-analytics.vercel.app",
+  },
 ]
 
 const BG = "#0f2d6b"
@@ -157,6 +217,11 @@ export default function Home() {
         .grid-card-3 { animation: fadeSlideUp 0.6s 1.1s both; }
         .grid-card-4 { animation: fadeSlideUp 0.6s 1.2s both; }
         .grid-card-5 { animation: fadeSlideUp 0.6s 1.3s both; }
+        .grid-card-6 { animation: fadeSlideUp 0.6s 1.4s both; }
+        .grid-card-7 { animation: fadeSlideUp 0.6s 1.5s both; }
+        .grid-card-8 { animation: fadeSlideUp 0.6s 1.6s both; }
+        .grid-card-9 { animation: fadeSlideUp 0.6s 1.7s both; }
+        .grid-card-10 { animation: fadeSlideUp 0.6s 1.8s both; }
         .logo-glow { animation: glow-pulse 3s ease-in-out infinite; }
         .scan { animation: scan-line 3s linear infinite; }
       `}</style>
